@@ -155,22 +155,22 @@ KID_LINES = dict(
     work=["Je surveille le SIEM.", "Ticket fermé.", "Réunion... zzz.", "Faux positif.",
           "Pause café !", "Je patche."],
     meal=["Miam !", "À table !", "C'est bon !", "Encore des biscuits ?", "J'ai faim."],
-    story=["Il était une fois un ping...", "De mon temps, les modems chantaient.",
+    story=["Il était une fois un ping...", "Avant, les modems chantaient.",
            "J'ai connu Windows 95, moi.", "Écoutez bien, les petits."],
     elder=["Mes cornes me font mal.", "Doucement...", "Quelle belle journée.", "Où sont mes lunettes ?"],
-    farewell=["C'est bientôt l'heure pour moi.", "Prenez soin de vous.", "Je veillerai depuis la lune.",
-              "Vous avez été ma plus belle aventure."],
+    farewell=["Bientôt l'heure pour moi.", "Prenez soin de vous.", "Je veillerai depuis la lune.",
+              "Ma plus belle aventure."],
     depart=["Adieu, mes chéris.", "À bientôt, là-haut.", "Je pars vers la lune."],
     mourn=["Tu nous manques.", "Snif...", "Regarde, c'est son étoile.", "Il aurait aimé ça."],
-    visitor=["Bonjour ! Je viens du village.", "Il paraît que c'est joli ici.", "Je peux rester un peu ?"],
+    visitor=["Bonjour, je viens du village.", "Il paraît que c'est joli ici.", "Je peux rester un peu ?"],
     court=["Tu as de belles cornes.", "On se balade ?", "Tiens, une fleur.", "Tu danses ?",
            "J'aime bien ton rire."],
     propose=["Veux-tu... m'épouser ?", "Toi et moi, pour toujours ?"],
     accept=["Oui !!", "Mille fois oui !"],
     refuse=["Pas encore...", "Laisse-moi réfléchir."],
     wedding=["Vive les mariés !", "Youpi !", "Bravo !", "Trop beau !"],
-    vows=["Je promets de patcher tes bugs.", "Je promets de te laisser le dernier biscuit.",
-          "Je promets de toujours te trouver à cache-cache.", "Je promets de veiller sur nos ports."],
+    vows=["Je patcherai tes bugs.", "Le dernier biscuit sera à toi.",
+          "Je te trouverai à cache-cache.", "Je veillerai sur nos ports."],
     birthday=["Joyeux anniversaire !", "Souffle !", "Hip hip hip hourra !", "Un gâteau !"],
     sibling=["C'est à moi !", "Non, à moi !", "T'es nul.", "Maman !"],
     festival=["C'est la fête !", "On danse !", "Regarde le ciel !", "Des lanternes !"],
@@ -244,7 +244,7 @@ DUO_CHATS = [("T'as vu cette alerte ?", "Faux positif. Encore."),
              ("Qui a le plus de flags ?", "Moi. Évidemment."),
              ("Tu dors ?", "Je veille. Nuance.")]
 DEBATES = [
-    ["Tabs ou espaces ?", "Espaces. Évidemment.", "Hérétique.", "Dit celui qui code en Notepad."],
+    ["Tabs ou espaces ?", "Espaces. Évidemment.", "Hérétique.", "Dit celui qui code sur Notepad."],
     ["Le meilleur port ?", "22.", "443, voyons.", "...445 ?", "NON."],
     ["On patch quand ?", "Vendredi 17h.", "T'es un monstre.", "Un démon, nuance."],
     ["Nmap ou masscan ?", "Les deux.", "Réponse de politicien.", "Réponse de SOC."],
@@ -4089,8 +4089,8 @@ class Family:
             p.go_to(sc["cx"] + side * (70 + k * spacing), sc["seg"], 110)
             i += 1
         if isinstance(who, tuple):
-            who[0].go_to(sc["cx"] - 30, sc["seg"], 90)
-            who[1].go_to(sc["cx"] + 30, sc["seg"], 90)
+            who[0].go_to(sc["cx"] - 44, sc["seg"], 90)
+            who[1].go_to(sc["cx"] + 44, sc["seg"], 90)
         elif who is not None:
             who.go_to(sc["cx"], sc["seg"], 90)
 
