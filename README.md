@@ -1,9 +1,28 @@
 # H13ris Desktop Pets — Hybris & Iblis
 
+<p align="center"><img src="docs/gif_duo.gif" alt="Hybris and Iblis: high five and dance" width="640"></p>
+
+**English** · Two tiny demons that live on your Windows desktop, across all your monitors.
+They chat, race, fight with pillows, open treasure chests and fly; run the script twice
+and the first pair hunts the intruders. On the main screen they raise a family: eggs,
+school and homework on your real clock, mischief and scolding, courtship, weddings under
+a flower arch, grandchildren, old age and a farewell to the moon — everything saved
+between sessions, with a demo mode that plays a whole life in eight minutes.
+One Python file (PyQt6), vector-drawn, no network, no open port, MIT.
+
+```bat
+pip install PyQt6
+pythonw h13ris_pets.py
+```
+
+Prefer a single `.exe`? Grab it from the [Releases](https://github.com/hi3ris/H13ris-Desktop-Pets/releases)
+page (Windows may show a SmartScreen warning for unsigned apps: *More info → Run anyway*).
+Right-click a demon for the menu. The documentation below is in French.
+
+---
+
 Deux petits démons tout ronds qui vivent sur ton bureau Windows, sur tous tes écrans.
 Un seul fichier Python, zéro réseau, zéro port ouvert.
-
-<p align="center"><img src="docs/gif_duo.gif" alt="Hybris et Iblis : check et danse" width="640"></p>
 
 ## Installation
 
@@ -11,6 +30,10 @@ Un seul fichier Python, zéro réseau, zéro port ouvert.
 pip install PyQt6
 pythonw h13ris_pets.py
 ```
+
+Ou l'exécutable `H13risDesktopPets.exe` des [Releases](https://github.com/hi3ris/H13ris-Desktop-Pets/releases),
+sans rien installer (Windows peut afficher un avertissement SmartScreen : *Informations
+complémentaires → Exécuter quand même*).
 
 `activer_demarrage.bat` active le lancement automatique au démarrage de Windows
 (décochable dans le menu, ou `python h13ris_pets.py --autostart off`).
@@ -99,6 +122,9 @@ python tests/make_gifs.py      # régénère les GIF de docs/
 ## Structure
 
 - `h13ris_pets.py` — tout le programme (PyQt6, dessin vectoriel, aucune ressource externe)
-- `docs/` — aperçus, GIF et les deux notes de recherche qui ont guidé le design
+- `docs/` — aperçus, GIF, icône et les deux notes de recherche qui ont guidé le design
   (mascottes mignonnes, vie de famille simulée)
 - `tests/` — simulations et générateurs d'aperçus
+- `.github/workflows/build-exe.yml` — compile le `.exe` (PyInstaller) à chaque release
+
+Licence MIT.

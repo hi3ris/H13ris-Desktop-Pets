@@ -6909,8 +6909,11 @@ def main():
         i = sys.argv.index("--autostart")
         on = (sys.argv[i + 1:i + 2] or ["on"])[0].lower() != "off"
         ok = autostart_set(on)
-        print(("Démarrage auto " + ("activé" if on else "désactivé")) if ok
-              else "Impossible (Windows uniquement).")
+        try:                                                   # pas de console dans l'exe
+            print(("Démarrage auto " + ("activé" if on else "désactivé")) if ok
+                  else "Impossible (Windows uniquement).")
+        except Exception:
+            pass
         QSettings("H13ris", "DesktopPets").setValue("autostart_init", True)
         return
     signal.signal(signal.SIGINT, signal.SIG_DFL)
