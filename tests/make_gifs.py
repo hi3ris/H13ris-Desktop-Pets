@@ -61,10 +61,11 @@ def place(p, cx, seg=None):
 
 
 class Recorder:
-    def __init__(self, worlds, width=640, height=270, floor=SEG[0].yb):
+    def __init__(self, worlds, width=640, height=270, floor=SEG[0].yb, zoom=1.0):
         self.worlds = worlds if isinstance(worlds, list) else [worlds]
         self.wd, self.ht = width, height
         self.floor = floor
+        self.zoom = zoom
         self.frames = []
         self.cam = None
 
@@ -82,21 +83,25 @@ class Recorder:
             target = sum(p.cx() for p in focus) / len(focus)
         else:
             target = sum(p.cx() for p in acts) / max(1, len(acts))
-        target = max(self.wd / 2, min(SEG[0].x1 - self.wd / 2, target))
+        vw, vh = self.wd / self.zoom, self.ht / self.zoom            # vue en unités écran
+        target = max(vw / 2, min(SEG[0].x1 - vw / 2, target))
         self.cam = target if self.cam is None else self.cam + (target - self.cam) * 0.15
-        x0, y0 = self.cam - self.wd / 2, self.floor + 14 - self.ht
+        x0, y0 = self.cam - vw / 2, self.floor + 14 - vh
         img = QImage(self.wd, self.ht, QImage.Format.Format_RGBA8888)
         img.fill(BG)
         p = QPainter(img)
         p.setRenderHint(QPainter.RenderHint.Antialiasing)
         p.setRenderHint(QPainter.RenderHint.TextAntialiasing)
+        p.scale(self.zoom, self.zoom)
         p.setPen(QPen(FLOOR, 2))
-        p.drawLine(QPointF(0, self.floor - y0 + 1), QPointF(self.wd, self.floor - y0 + 1))
+        p.drawLine(QPointF(0, self.floor - y0 + 1), QPointF(vw, self.floor - y0 + 1))
         for w in self.worlds:
             f = w.family
             props = list(f.decor.values()) + list(f.dyn.values()) + list(w.props.values())
             if f.egg and f.egg.get("prop") is not None:
                 props.append(f.egg["prop"])
+            if getattr(w, "fanmeet", None) is not None and w.fanmeet.banner is not None:
+                props.append(w.fanmeet.banner)
             for pr in props:
                 s = pr.width()
                 p.save()
@@ -367,7 +372,49 @@ def gif_mischief():
     w.shutdown()
 
 
+
+
+# ---------------------------------------------------------------- fan meeting
+def gif_fanmeet(key="nova7", name="gif_fanmeeting.gif", seed=4):
+    set_time(17.5)
+    w = new_world(seed, decor=False)
+    f = w.family
+    a, b = w.pets
+    cx = 900
+    place(a, cx - 330)
+    place(b, cx + 330)
+    kids = [person(w, 5.0, 290, "helice"), person(w, 11.0, 30, "lunettes"), person(w, 20.0, 180, None)]
+    for k, x in zip(kids, (cx - 420, cx + 420, cx + 500)):
+        place(k, x)
+    f.assign_duties(force=True)
+    for q in w.everyone():
+        q.duty = None
+    settle(w, 0.5)
+    fm = w.fanmeet
+    assert fm.start(key)
+    global FPS
+    old, FPS = FPS, 10
+    r = Recorder(w, width=820, height=300, zoom=0.9)
+    settle(w, 1.2)
+    r.run(8.0, fixed=fm.stage)                  # arrivée + cris
+    r.run(5.0, fixed=fm.stage)                  # salut du groupe
+    while fm.phase == "fanservice" and fm.pt < 9:
+        settle(w, 0.5)
+    r.run(8.0, fixed=fm.stage)                  # photos, selfies, évanouissements
+    while fm.phase != "dance" or fm.step < 2:
+        settle(w, 0.5)
+    r.run(5.0, fixed=fm.stage)                  # chorégraphie
+    r.save(name, colors=160)
+    FPS = old
+    fm.end(quiet=True)
+    w.shutdown()
+
+
+def gif_fanmeet_lumi():
+    gif_fanmeet("lumi", "gif_fanmeeting_lumi.gif", seed=9)
+
+
 if __name__ == "__main__":
-    which = sys.argv[1:] or ["duo", "war", "flight", "hunt", "school", "birthday", "wedding", "mischief"]
+    which = sys.argv[1:] or ["duo", "war", "flight", "hunt", "school", "birthday", "wedding", "mischief", "fanmeet", "fanmeet_lumi"]
     for name in which:
         globals()["gif_" + name]()
