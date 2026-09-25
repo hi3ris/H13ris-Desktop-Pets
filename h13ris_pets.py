@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-H13ris Desktop Pets — Hybris & Iblis  (v5)
+H13ris Desktop Pets — Hybris & Iblis  (v5.1)
 Deux petits démons tout ronds qui vivent sur ton bureau, sur TOUS tes écrans.
 
 Installation :  pip install PyQt6
@@ -51,6 +51,16 @@ VIE DE FAMILLE ET DE COMMUNAUTÉ (menu « Famille & village »)
   Mode démo (menu) : une vie entière en huit minutes, sans toucher à la vraie
   famille, pour tout voir d'un coup.
 
+FAN MEETING (menu « 🎤 Fan meeting », ou visite surprise de temps en temps)
+  Un groupe d'idoles FICTIF débarque avec sa banderole : NOVA 7 (7 garçons) ou
+  LUMI (5 filles), chaque membre reconnaissable à sa coiffure, sa couleur de
+  cheveux, son accessoire, sa tenue, son rôle et sa pose signature. Les démons
+  et tout le village deviennent des fans surexcités : cris, lightsticks aux
+  couleurs du groupe, photos, selfies, autographes, cadeaux, cœurs avec les
+  doigts, évanouissements (un autre fan vient les réveiller), larmes de joie,
+  fanchant avec le nom des membres, chorégraphie synchronisée, adieux déchirants.
+  « Créer un groupe… » : ton propre groupe (nom, fandom, couleur, membres).
+
 MODE CHASSE (lance le script plusieurs fois !)
   La première instance devient la Garde : ses deux démons s'allient pour
   traquer et éliminer les intrus. Chaque instance suivante est un duo d'intrus
@@ -85,7 +95,9 @@ from PyQt6.QtCore import QElapsedTimer, QPointF, QRectF, QSettings, Qt, QTimer
 from PyQt6.QtGui import (QActionGroup, QColor, QCursor, QFont, QFontMetrics,
                          QGuiApplication, QIcon, QLinearGradient, QPainter,
                          QPainterPath, QPen, QPixmap, QPolygonF, QRadialGradient)
-from PyQt6.QtWidgets import QApplication, QMenu, QSystemTrayIcon, QWidget
+from PyQt6.QtWidgets import (QApplication, QComboBox, QDialog, QDialogButtonBox, QFormLayout,
+                             QHBoxLayout, QHeaderView, QLineEdit, QMenu, QPushButton, QSlider,
+                             QSystemTrayIcon, QTableWidget, QVBoxLayout, QWidget)
 
 # --------------------------------------------------------------------------- #
 # Réglages
@@ -178,7 +190,89 @@ KID_LINES = dict(
     lonely=["Quelqu'un veut jouer ?", "Je m'ennuie."],
 )
 BOOK_KINDS = dict(naissance="🥚", anniversaire="🎂", ecole="📚", betise="😈", mariage="💍",
-                  visite="🎒", depart="🌙", fete="🎉", exploit="⭐", famille="💞")
+                  visite="🎒", depart="🌙", fete="🎉", exploit="⭐", famille="💞", fanmeet="🎤")
+
+# ---- Fan meeting : groupes d'idoles FICTIFS (aucun groupe réel) ----
+HAIR_STYLES = {            # style -> (masse arrière, frange)
+    "rideau": (None, "rideau"), "meche": (None, "meche"), "frange": (None, "frange"),
+    "pointes": (None, "pointes"), "rase": (None, "rase"), "mulet": ("mulet", "pointes"),
+    "boucles": ("boucles", "boucles"), "long": ("long", "rideau"), "carre": ("carre", "frange"),
+    "couettes": ("couettes", "frange"), "queue": ("queue", "meche"), "chignon": ("chignon", "rideau"),
+}
+HAIR_COLORS = {"noir": "#1E1B24", "brun": "#5A3825", "chatain": "#8A5A3B", "blond": "#F2D27A",
+               "platine": "#EFEDE6", "argent": "#B9C0CC", "rose": "#FF8FC2", "rouge": "#D8323C",
+               "orange": "#FF8A3D", "menthe": "#7FE0C4", "bleu": "#3D6BFF", "violet": "#8E5BD9",
+               "lavande": "#B9A6F2", "vert": "#3FA86B"}
+IDOL_ACCS = ["aucun", "lunettes", "piercing", "casquette", "bandana", "bonnet", "oreillette",
+             "noeud", "serre_tete", "grain", "pansement", "etoile"]
+IDOL_OUTFITS = ["costume", "veste", "sweat", "crop", "robe"]
+IDOL_ROLES = ["leader", "chant", "rap", "danse", "visual", "maknae"]
+IDOL_POSES = ["point", "heart", "peace", "arms_up", "wink", "wave", "big_heart"]
+SKIN_TONES = ["#FFE3CF", "#F6D2B6", "#E9BC96", "#C98E66"]
+IDOL_GROUPS = {
+    "nova7": dict(name="NOVA 7", fandom="Novas", hue=228, stick="etoile",
+                  greet="Say the name... NOVA 7 !", chant="NO-VA SE-VEN !",
+                  members=[
+                      dict(name="Doha", hair="rideau", hc="noir", acc="lunettes", role="leader",
+                           outfit="costume", oc="#26306B", skin=1, sig="point"),
+                      dict(name="Rion", hair="meche", hc="platine", acc="oreillette", role="chant",
+                           outfit="veste", oc="#F4F4F8", skin=0, sig="heart"),
+                      dict(name="Seyun", hair="mulet", hc="rouge", acc="piercing", role="rap",
+                           outfit="sweat", oc="#22222A", skin=2, sig="peace"),
+                      dict(name="Kaen", hair="boucles", hc="brun", acc="casquette", role="danse",
+                           outfit="sweat", oc="#FFC93D", skin=3, sig="arms_up"),
+                      dict(name="Iseul", hair="long", hc="argent", acc="grain", role="visual",
+                           outfit="costume", oc="#ECE9F7", skin=0, sig="wink"),
+                      dict(name="Taeo", hair="rase", hc="bleu", acc="pansement", role="chant",
+                           outfit="veste", oc="#3FA86B", skin=2, sig="wave"),
+                      dict(name="Minu", hair="frange", hc="rose", acc="bonnet", role="maknae",
+                           outfit="sweat", oc="#B9A6F2", skin=1, sig="big_heart"),
+                  ]),
+    "lumi": dict(name="LUMI", fandom="Lumies", hue=330, stick="coeur",
+                 greet="Un, deux, trois... on est LUMI !", chant="LU-MI ! LU-MI !",
+                 members=[
+                     dict(name="Aerin", hair="carre", hc="noir", acc="serre_tete", role="leader",
+                          outfit="crop", oc="#FF7FB2", skin=1, sig="point"),
+                     dict(name="Nari", hair="long", hc="lavande", acc="etoile", role="chant",
+                          outfit="robe", oc="#FFFFFF", skin=0, sig="heart"),
+                     dict(name="Dain", hair="couettes", hc="rouge", acc="piercing", role="rap",
+                          outfit="veste", oc="#22222A", skin=2, sig="peace"),
+                     dict(name="Chaeon", hair="queue", hc="blond", acc="casquette", role="danse",
+                          outfit="crop", oc="#7FE0C4", skin=3, sig="arms_up"),
+                     dict(name="Yul", hair="chignon", hc="menthe", acc="noeud", role="maknae",
+                          outfit="robe", oc="#FFB38A", skin=0, sig="big_heart"),
+                 ]),
+}
+FAN_LINES = dict(
+    notice=["C'est... C'est %s ?!", "NON. C'EST %s !!", "Je rêve ou c'est %s ?!"],
+    scream=["KYAAAA !!", "AAAAAH !!", "OMG !!", "OPPAAA !!", "JE MEURS !!"],
+    rush=["Attendez-moi !!", "Poussez-vous !", "Mon lightstick !!"],
+    photo=["Regarde par ici !!", "Juste une photo !!", "Souriiis !"],
+    photo_after=["TROP BEAU !!", "Elle est floue... ENCORE !", "Fond d'écran à vie."],
+    selfie=["Un selfie ?? S'il te plaît !!", "On fait un selfie ?!"],
+    selfie_after=["J'ai un selfie avec %s !!!", "Personne va me croire !!", "Je l'encadre."],
+    autograph=["Tu peux signer ici ?!", "Un autographe !! S'il te plaît !"],
+    autograph_after=["Je me lave plus jamais les mains.", "Il a signé !!! IL A SIGNÉ !!", "Trésor national."],
+    heart=["IL M'A FAIT UN CŒUR !!", "C'était pour moi ?!", "Mon cœur..."],
+    faint=["Il m'a... regardé...", "*s'évanouit*", "Trop... de... charisme..."],
+    wake=["Hein ? J'ai rêvé ?", "Où je suis ?", "C'était pas un rêve ?!"],
+    fan_help=["Réveille-toi !!", "Respire !!", "Tiens bon !"],
+    cry=["Je vais pleurer...", "*sanglote de joie*", "C'est le plus beau jour de ma vie."],
+    shy=["...b-bonjour...", "*se cache*", "J'ose pas..."],
+    gift=["C'est pour toi !!", "Je l'ai fait moi-même !"],
+    bye=["NOOOON restez !!", "Revenez vite !!", "On vous aime !!"],
+)
+IDOL_LINES = dict(
+    hello=["Bonjour !", "Coucou !", "Merci d'être là !"],
+    photo=["Cheese !", "Comme ça ?", "Encore une ?"],
+    selfie=["Oh, bien sûr !", "Viens !", "Tu es où sur la photo ?"],
+    sign=["Voilà !", "Avec un petit cœur.", "Pour toi !"],
+    heart=["Saranghae !", "Pour toi !", "♥"],
+    comfort=["Ne pleure pas !", "Merci, vraiment.", "Hé, ça va aller !"],
+    shy=["Salut toi !", "N'aie pas peur !"],
+    gift=["Merci !! Je le garde !", "Trop mignon !!"],
+    bye=["Merci ! On vous aime !", "À bientôt !", "Prenez soin de vous !"],
+)
 
 # Humeurs : fréquence des duos, délai mini entre deux bulles spontanées (s),
 # délai mini entre deux batailles automatiques (s, None = jamais)
@@ -500,6 +594,35 @@ def draw_item_icon(p, kind, x, y, s=1.0, rot=0.0):
         p.drawEllipse(QPointF(0, -3), 2.5, 2.5)
         p.setBrush(QColor("#FF8A3D"))
         p.drawPolygon(QPolygonF([QPointF(-3, 10), QPointF(3, 10), QPointF(0, 17)]))
+    elif kind == "telephone":
+        p.setPen(mkpen(QColor("#2A2D3A"), 1.4))
+        p.setBrush(QColor("#3A3F52"))
+        p.drawRoundedRect(QRectF(-6, -11, 12, 22), 3, 3)
+        p.setPen(NO_PEN)
+        p.setBrush(QColor("#9FD8FF"))
+        p.drawRoundedRect(QRectF(-4.5, -8.5, 9, 15), 1.5, 1.5)
+    elif kind == "carnet":
+        p.setPen(mkpen(QColor("#8A3B5E"), 1.3))
+        p.setBrush(QColor("#FF9ECF"))
+        p.drawRoundedRect(QRectF(-9, -11, 18, 22), 2, 2)
+        p.setPen(mkpen(QColor("#FFFFFF"), 1.2))
+        p.drawLine(QPointF(-5, -3), QPointF(5, -3))
+        p.drawLine(QPointF(-5, 2), QPointF(3, 2))
+        p.setPen(NO_PEN)
+        p.setBrush(QColor("#FFFFFF"))
+        p.drawPath(heart_path(0, -7, 4))
+    elif kind == "peluche":
+        p.setPen(mkpen(QColor("#7A4E24"), 1.2))
+        p.setBrush(QColor("#C98A4B"))
+        for ex in (-7, 7):
+            p.drawEllipse(QPointF(ex, -9), 4, 4)
+        p.drawEllipse(QPointF(0, 0), 10, 10)
+        p.setPen(NO_PEN)
+        p.setBrush(QColor("#2A1A10"))
+        for ex in (-3.5, 3.5):
+            p.drawEllipse(QPointF(ex, -1), 1.3, 1.3)
+        p.setBrush(QColor("#FF7FA0"))
+        p.drawEllipse(QPointF(0, 3), 2.2, 1.5)
     p.restore()
 
 
@@ -786,6 +909,9 @@ class Pet(QWidget):
         self.helping = None
         self.hw_day = None
         self.fam_cd = 0.0
+        # fan meeting : objet de fan tenu en main (lightstick, téléphone, selfie)
+        self.fan_prop, self.fan_hue, self.fan_stick = None, 300.0, "rond"
+        self.is_idol = False
         self.c_body = hsl(*sk["body"])
         self.c_light = self.c_body.lighter(128)
         self.c_shade = self.c_body.darker(118)
@@ -1844,6 +1970,8 @@ class Pet(QWidget):
             p.drawEllipse(QPointF(34, -24 - swing), 5, 5)
 
         self.draw_held(p)
+        if self.fan_prop:
+            draw_fan_prop(self, p)
 
         if self.spark > 0:
             p.setPen(mkpen(QColor("#FFD23F"), 2.2))
@@ -2437,7 +2565,7 @@ class Pet(QWidget):
         fm = QFontMetrics(f)
         bw = min(W - 6, fm.horizontalAdvance(self.bubble) + 24)
         bh = fm.height() + 12
-        top = max(2, GROUND - 100 - bh - lift)
+        top = max(2, GROUND - 100 - bh - lift - (16 if self.is_idol else 0))
         rect = QRectF(cx - bw / 2, top, bw, bh)
         path = QPainterPath()
         path.addRoundedRect(rect, bh / 2, bh / 2)
@@ -2954,7 +3082,7 @@ class Prop(Overlay):
 # Décor du village : maison, école, bureau, gâteau, arche de mariage, tombe,
 # gribouillis, cadeau. Dessinés au sol en (x, y).
 # --------------------------------------------------------------------------- #
-WIDE_PROPS = ("maison", "ecole", "arche")
+WIDE_PROPS = ("maison", "ecole", "arche", "banniere")
 
 
 def _shadow(p, cx, gy, rx=22):
@@ -4039,7 +4167,7 @@ class Family:
     def scene_tick(self, dt):
         w = self.w
         if self.scene is None:
-            if self.queue and self.scene_cd <= 0 and w.role is None:
+            if self.queue and self.scene_cd <= 0 and w.role is None and not w.fanmeet.active:
                 if w.duo is not None:
                     if self.queue[0][0] != "depart":              # les adieux n'attendent pas
                         return
@@ -4298,7 +4426,7 @@ class Family:
     # ---------- vie sociale : bêtises, amours, visiteurs, fêtes ----------
     def social_tick(self, dt):
         w = self.w
-        if w.role is not None or self.scene is not None:
+        if w.role is not None or self.scene is not None or w.fanmeet.active:
             return
         # fêtes du calendrier (une fois par jour de fête, le soir)
         today = datetime.date.today()
@@ -4882,6 +5010,1342 @@ h1{font-weight:700;margin:0 0 4px}h2{margin-top:32px;border-bottom:1px solid #3a
             fm.addAction("☾ Partis vers la lune : %s%s" % (names, "…" if len(self.memorial) > 4 else "")).setEnabled(False)
 
 
+
+# --------------------------------------------------------------------------- #
+# Fan meeting : un groupe d'idoles (fictif) passe sur le bureau. Les démons et
+# tout le village deviennent des fans surexcités : cris, photos, selfies,
+# autographes, cœurs, évanouissements, larmes de joie, fanchant, chorégraphie.
+# Les groupes sont inventés ; l'éditeur permet de créer les siens.
+# --------------------------------------------------------------------------- #
+import re  # noqa: E402
+
+OUTFIT_COLORS = dict(HAIR_COLORS, blanc="#F4F4F8")
+
+
+def draw_lightstick(p, x, y, hue, shape, angle=0.0, glow=1.0, s=1.0):
+    p.save()
+    p.translate(x, y)
+    p.rotate(angle)
+    p.scale(s, s)
+    p.setPen(mkpen(QColor("#2A2D3A"), 1.2))
+    p.setBrush(QColor("#F4F4F8"))
+    p.drawRoundedRect(QRectF(-2.6, -20, 5.2, 22), 2, 2)
+    c = hsl(hue, 0.85, 0.62)
+    g = QRadialGradient(QPointF(0, -28), 16)
+    halo = QColor(c)
+    halo.setAlpha(int(120 * glow))
+    g.setColorAt(0.0, halo)
+    g.setColorAt(1.0, QColor(c.red(), c.green(), c.blue(), 0))
+    p.setPen(NO_PEN)
+    p.setBrush(g)
+    p.drawEllipse(QPointF(0, -28), 16, 16)
+    p.setPen(mkpen(c.darker(150), 1.2))
+    p.setBrush(c.lighter(100 + int(40 * glow)))
+    if shape == "etoile":
+        p.drawPolygon(star_poly(0, -28, 9, 4.2))
+    elif shape == "coeur":
+        p.drawPath(heart_path(0, -28, 7))
+    else:
+        p.drawEllipse(QPointF(0, -28), 7.5, 7.5)
+    p.setPen(NO_PEN)
+    p.setBrush(QColor(255, 255, 255, 190))
+    p.drawEllipse(QPointF(-2.5, -31), 2.2, 1.6)
+    p.restore()
+
+
+def draw_fan_prop(pet, p):
+    """Objet de fan tenu par un démon ou un habitant (coordonnées locales du pet)."""
+    kind = pet.fan_prop
+    if kind == "lightstick":
+        wave = math.sin(pet.t * 7) * 20
+        glow = 0.7 + 0.3 * math.sin(pet.t * 9)
+        if pet.arm_up:
+            draw_lightstick(p, 31, -58, pet.fan_hue, pet.fan_stick, -10 + wave, glow)
+        else:
+            draw_lightstick(p, 37, -26, pet.fan_hue, pet.fan_stick, 25 + wave * 0.4, glow)
+    elif kind == "telephone":
+        draw_item_icon(p, "telephone", 40, -58 if pet.arm_up else -40, 0.8)
+    elif kind == "selfie":
+        draw_item_icon(p, "telephone", 36, -88, 0.8, -12)
+
+
+def paint_banniere(pr, p, cx, gy):
+    c = hsl(pr.hue, 0.7, 0.55)
+    _shadow(p, cx, gy, 70)
+    p.setPen(mkpen(QColor("#5A5F75"), 2.4))
+    for px in (cx - 70, cx + 70):
+        p.drawLine(QPointF(px, gy), QPointF(px, gy - 108))
+    p.setPen(NO_PEN)
+    p.setBrush(QColor("#FFD23F"))
+    for px in (cx - 70, cx + 70):
+        p.drawEllipse(QPointF(px, gy - 110), 3.5, 3.5)
+    rect = QRectF(cx - 66, gy - 104, 132, 36)
+    g = QLinearGradient(rect.topLeft(), rect.bottomLeft())
+    g.setColorAt(0, c.lighter(115))
+    g.setColorAt(1, c.darker(115))
+    p.setPen(mkpen(c.darker(160), 1.4))
+    p.setBrush(g)
+    path = QPainterPath(rect.topLeft())
+    path.lineTo(rect.topRight())
+    path.lineTo(rect.bottomRight())
+    for k in range(6):                                   # bord festonné
+        x1 = rect.right() - (k + 1) * rect.width() / 6
+        path.quadTo(QPointF(x1 + rect.width() / 12, rect.bottom() + 6), QPointF(x1, rect.bottom()))
+    path.closeSubpath()
+    p.drawPath(path)
+    f = QFont("Segoe UI", 12)
+    f.setWeight(QFont.Weight.Black)
+    p.setFont(f)
+    outlined_text(p, rect, pr.label, QColor("#FFFFFF"), c.darker(190), 1)
+    p.setPen(NO_PEN)
+    for k in range(9):                                   # guirlande d'ampoules
+        on = (int(pr.t * 4) + k) % 3 == 0
+        p.setBrush(QColor("#FFF6B0") if on else QColor(255, 210, 63, 150))
+        p.drawEllipse(QPointF(cx - 64 + k * 16, gy - 110 + (k % 2) * 3), 2.6, 2.6)
+    for sx in (-1, 1):
+        p.setBrush(QColor(255, 255, 255, 200))
+        p.drawPolygon(star_poly(cx + sx * 56, gy - 60, 4, 1.8, rot=pr.t))
+
+
+DECOR_PAINTERS["banniere"] = paint_banniere
+
+
+# --------------------------------------------------------------------------- #
+# Une idole : petit personnage chibi (tête ronde, coiffure et accessoire
+# distinctifs, tenue de scène, pose signature, nom sous les pieds).
+# --------------------------------------------------------------------------- #
+class Idol(Pet):
+    DANCE = ["arms_up", "point", "wave", "peace", "heart", "point", "arms_up", "big_heart"]
+
+    def __init__(self, world, group, m):
+        skin = dict(body=(20, 0.5, 0.8), belly=(20, 0.5, 0.85), horn="#000000", horn_line="#000000",
+                    tail_tip="#000000", horn_shape="", blush="#FF9EB8",
+                    iris_top=m.get("eyes", "#8A5A3B"), iris_bot="#2A1A14", mark="")
+        super().__init__(m["name"], world, skin=skin)
+        self.is_idol = True
+        self.busy = True
+        self.group, self.m = group, m
+        self.c_skin = QColor(SKIN_TONES[int(m.get("skin", 0)) % len(SKIN_TONES)])
+        self.c_hair = QColor(HAIR_COLORS.get(m.get("hc"), m.get("hc", "#1E1B24")))
+        self.c_outfit = QColor(OUTFIT_COLORS.get(m.get("oc"), m.get("oc", "#26306B")))
+        self.c_group = hsl(group.get("hue", 300), 0.75, 0.55)
+        self.c_line = self.c_skin.darker(170)
+        self.c_body = self.c_skin
+        self.eye_k = 0.95
+        self.pose, self.pose_t, self.dance_pose = None, 0.0, None
+        self.delay, self.entered, self.exited = 0.0, False, False
+        self.spot = 0.0
+        self.show_name = True
+
+    # ---- poses ----
+    def set_pose(self, pose, dur=1.8):
+        self.pose, self.pose_t = pose, dur
+        if pose == "wink":
+            self.set_expr("wink", dur)
+        elif pose in ("heart", "big_heart", "peace", "wave", "arms_up"):
+            self.set_expr("happy", dur)
+
+    def cur_pose(self):
+        if self.dance_pose:
+            return self.dance_pose
+        if self.pose_t > 0:
+            return self.pose
+        return None
+
+    def tick(self, dt):
+        self.pose_t = max(0.0, self.pose_t - dt)
+        Pet.tick(self, dt)
+
+    def snapshot(self):
+        d = Pet.snapshot(self)
+        d["idol"] = True
+        return d
+
+    def paint_all(self, p, bubble=True):
+        Pet.paint_all(self, p, bubble)
+        if self.show_name and bubble and self.state not in ("ghost", "gone"):
+            f = QFont("Segoe UI", 7)
+            f.setWeight(QFont.Weight.Bold)
+            p.setFont(f)
+            p.setOpacity(self.alpha())
+            outlined_text(p, QRectF(W / 2 - 40, GROUND + 1, 80, 12), self.name, self.c_group.lighter(135),
+                          QColor(30, 20, 40), 1)
+
+    # ---- dessin (pieds en (0,0), regard vers +x) ----
+    def draw_character(self, p):
+        t, st = self.t, self.state
+        walking = st == "walk" and not self.airborne
+        ph = self.walk_phase
+        fm = self.face_mode()
+        pose = self.cur_pose()
+        outfit = self.m.get("outfit", "veste")
+        if pose == "bow":
+            p.translate(0, -16)
+            p.rotate(26)
+            p.translate(0, 16)
+        oc, sk = self.c_outfit, self.c_skin
+        pants = QColor("#2A2D3A") if oc.lightness() > 150 else QColor("#F4F4F8") if outfit == "costume" \
+            and oc.lightness() < 60 else QColor("#3A3F52")
+        if outfit == "costume":
+            pants = oc.darker(115)
+        # jambes et chaussures
+        for i, lx in enumerate((-7, 7)):
+            lift = max(0.0, math.sin(ph + i * math.pi)) * 5 if walking else 0.0
+            if st in ("drag", "fall") or self.airborne:
+                lift = 2 + math.sin(t * 8 + i) * 2
+            p.setPen(mkpen(pants.darker(150), 1.1))
+            p.setBrush(pants if outfit not in ("robe", "crop") else sk)
+            p.drawRoundedRect(QRectF(lx - 4.5, -22 - lift, 9, 17), 4, 4)
+            p.setPen(mkpen(QColor("#9AA0B8"), 1.0))
+            p.setBrush(QColor("#FFFFFF") if outfit != "costume" else QColor("#1E1B24"))
+            p.drawRoundedRect(QRectF(lx - 4.5, -7 - lift, 12, 7), 3, 3)
+        # jupe / robe
+        if outfit in ("robe", "crop"):
+            skirt = oc if outfit == "robe" else oc.darker(125)
+            p.setPen(mkpen(skirt.darker(150), 1.2))
+            p.setBrush(skirt)
+            sw = math.sin(t * 3) * 1.5
+            p.drawPolygon(QPolygonF([QPointF(-11, -30), QPointF(11, -30), QPointF(17 + sw, -14),
+                                     QPointF(-17 + sw, -14)]))
+        # torse
+        top_y = -45
+        waist = -30 if outfit == "crop" else -20
+        g = QLinearGradient(QPointF(0, top_y), QPointF(0, waist))
+        g.setColorAt(0, oc.lighter(110))
+        g.setColorAt(1, oc.darker(112))
+        p.setPen(mkpen(oc.darker(160), 1.4))
+        p.setBrush(g)
+        torso = QPainterPath(QPointF(-15, top_y + 3))
+        torso.quadTo(QPointF(0, top_y - 2), QPointF(15, top_y + 3))
+        torso.lineTo(QPointF(13, waist))
+        torso.quadTo(QPointF(0, waist + 3), QPointF(-13, waist))
+        torso.closeSubpath()
+        p.drawPath(torso)
+        if outfit == "crop":                                    # ventre
+            p.setPen(NO_PEN)
+            p.setBrush(sk)
+            p.drawRoundedRect(QRectF(-12, -31, 24, 3), 1.5, 1.5)
+        p.setPen(NO_PEN)
+        if outfit == "costume":                                 # chemise + cravate/nœud
+            p.setBrush(QColor("#FFFFFF"))
+            p.drawPolygon(QPolygonF([QPointF(-6, top_y + 1), QPointF(6, top_y + 1), QPointF(0, -30)]))
+            p.setBrush(self.c_group)
+            p.drawPolygon(QPolygonF([QPointF(-1.8, top_y + 3), QPointF(1.8, top_y + 3), QPointF(2.6, -31),
+                                     QPointF(0, -28), QPointF(-2.6, -31)]))
+        elif outfit == "veste":                                 # veste ouverte, t-shirt
+            p.setBrush(QColor("#FFFFFF") if oc.lightness() < 200 else QColor("#2A2D3A"))
+            p.drawRect(QRectF(-4, top_y + 1, 8, waist - top_y - 2))
+            p.setPen(mkpen(oc.darker(170), 1.0))
+            p.drawLine(QPointF(-4, top_y + 2), QPointF(-4, waist - 1))
+            p.drawLine(QPointF(4, top_y + 2), QPointF(4, waist - 1))
+            p.setPen(NO_PEN)
+        elif outfit == "sweat":                                 # capuche + cordons + poche
+            p.setBrush(oc.darker(118))
+            p.drawEllipse(QPointF(-3, top_y + 1), 11, 4)
+            p.setPen(mkpen(QColor("#FFFFFF"), 1.1))
+            p.drawLine(QPointF(-3, top_y + 3), QPointF(-3, top_y + 11))
+            p.drawLine(QPointF(3, top_y + 3), QPointF(3, top_y + 11))
+            p.setPen(mkpen(oc.darker(150), 1.0))
+            p.drawLine(QPointF(-8, -26), QPointF(8, -26))
+            p.setPen(NO_PEN)
+        elif outfit == "robe":
+            p.setBrush(self.c_group.lighter(130))
+            p.drawEllipse(QPointF(0, -31), 11, 2)
+        # cou
+        p.setBrush(sk.darker(106))
+        p.drawRect(QRectF(-4, -50, 8, 7))
+        # cheveux (arrière)
+        back, bangs = HAIR_STYLES.get(self.m.get("hair"), (None, "rideau"))
+        self.draw_hair_back(p, back)
+        # tête
+        hg = QRadialGradient(QPointF(-6, -74), 30)
+        hg.setColorAt(0, sk.lighter(106))
+        hg.setColorAt(1, sk.darker(106))
+        p.setPen(mkpen(self.c_line, 1.4))
+        p.setBrush(hg)
+        p.drawEllipse(QPointF(-23, -63), 3.6, 4.6)
+        p.drawEllipse(QPointF(23, -63), 3.6, 4.6)
+        p.drawEllipse(QPointF(0, -66), 24, 24)
+        if self.hurt > 0:
+            p.setPen(NO_PEN)
+            p.setBrush(QColor(255, 255, 255, 100))
+            p.drawEllipse(QPointF(0, -66), 24, 24)
+        # joues
+        big = fm in ("happy", "wink")
+        bl = QColor(self.c_blush)
+        bl.setAlpha(170 if big else 110)
+        p.setPen(NO_PEN)
+        p.setBrush(bl)
+        for bx in (-14, 15):
+            p.drawEllipse(QPointF(bx, -56), 4.5 if big else 3.6, 2.6)
+        # visage : yeux et bouche des pets, réduits
+        p.save()
+        p.translate(0, -64)
+        p.scale(0.74, 0.74)
+        p.translate(0, 36)
+        self.draw_eyes(p, fm)
+        self.draw_mouth(p, fm)
+        p.restore()
+        # cheveux (avant) et accessoire
+        self.draw_bangs(p, bangs)
+        self.draw_idol_acc(p, self.m.get("acc", "aucun"))
+        self.draw_arms(p, pose, walking, ph)
+
+    # ---- cheveux ----
+    def hair_brush(self, top=-94, bottom=-40):
+        g = QLinearGradient(QPointF(0, top), QPointF(0, bottom))
+        g.setColorAt(0, self.c_hair.lighter(118))
+        g.setColorAt(1, self.c_hair.darker(118))
+        return g
+
+    def draw_hair_back(self, p, back):
+        if not back:
+            return
+        hc = self.c_hair
+        p.setPen(mkpen(hc.darker(150), 1.3))
+        p.setBrush(self.hair_brush())
+        if back == "long":
+            p.drawRoundedRect(QRectF(-28, -86, 56, 62), 16, 14)
+        elif back == "carre":
+            p.drawRoundedRect(QRectF(-29, -88, 58, 44), 16, 8)
+        elif back == "mulet":
+            p.drawRoundedRect(QRectF(-27, -76, 24, 34), 8, 8)
+        elif back == "couettes":
+            for sx in (-1, 1):
+                p.save()
+                p.translate(sx * 30, -60)
+                p.rotate(sx * -12)
+                p.drawEllipse(QPointF(0, 6), 7.5, 17)
+                p.restore()
+            p.setPen(NO_PEN)
+            p.setBrush(self.c_group)
+            for sx in (-1, 1):
+                p.drawEllipse(QPointF(sx * 27, -73), 3.5, 3.5)
+        elif back == "queue":
+            p.save()
+            p.translate(-24, -74)
+            p.rotate(28 + math.sin(self.t * 4) * 6)
+            p.drawEllipse(QPointF(0, 14), 7.5, 17)
+            p.restore()
+            p.setPen(NO_PEN)
+            p.setBrush(self.c_group)
+            p.drawEllipse(QPointF(-23, -76), 3.5, 3.5)
+        elif back == "chignon":
+            p.drawEllipse(QPointF(-2, -95), 10, 9)
+            p.setPen(NO_PEN)
+            p.setBrush(self.c_group)
+            p.drawRoundedRect(QRectF(-8, -89, 12, 3), 1.5, 1.5)
+        elif back == "boucles":
+            for k in range(9):
+                a = math.radians(150 + k * 30)
+                p.drawEllipse(QPointF(25 * math.cos(a), -64 + 25 * math.sin(a)), 8, 8)
+
+    def draw_bangs(self, p, bangs):
+        hc = self.c_hair
+        p.setPen(mkpen(hc.darker(150), 1.3))
+        p.setBrush(self.hair_brush(-94, -60))
+        if bangs == "rase":
+            path = QPainterPath(QPointF(23, -74))
+            path.arcTo(QRectF(-25, -91, 50, 50), 18, 144)
+            path.closeSubpath()
+            p.setBrush(hc)
+            p.drawPath(path)
+            p.setPen(NO_PEN)
+            p.setBrush(hc.darker(130))
+            for k in range(7):
+                p.drawEllipse(QPointF(-15 + k * 5, -82 + (k % 2) * 2), 0.9, 0.9)
+            return
+        path = QPainterPath(QPointF(26, -60))
+        path.arcTo(QRectF(-26, -92, 52, 52), 0, 180)
+        if bangs == "rideau":
+            path.lineTo(QPointF(-24, -54))
+            path.quadTo(QPointF(-16, -72), QPointF(0, -80))
+            path.quadTo(QPointF(16, -72), QPointF(24, -54))
+        elif bangs == "frange":
+            path.lineTo(QPointF(-24, -60))
+            path.lineTo(QPointF(-20, -70))
+            for k in range(9):
+                x = -20 + (k + 1) * 4.4
+                path.lineTo(QPointF(x, -69 if k % 2 == 0 else -72))
+            path.lineTo(QPointF(24, -60))
+        elif bangs == "meche":
+            path.lineTo(QPointF(-24, -64))
+            path.quadTo(QPointF(-6, -70), QPointF(8, -78))
+            path.quadTo(QPointF(14, -64), QPointF(25, -52))
+        elif bangs == "pointes":
+            path.lineTo(QPointF(-24, -62))
+            for k, (x, y) in enumerate(((-16, -73), (-10, -66), (-3, -75), (4, -67), (11, -74), (17, -64),
+                                        (22, -70))):
+                path.lineTo(QPointF(x, y))
+            path.lineTo(QPointF(25, -58))
+        elif bangs == "boucles":
+            path.lineTo(QPointF(-24, -64))
+            path.lineTo(QPointF(24, -64))
+        path.closeSubpath()
+        p.drawPath(path)
+        if bangs == "pointes":                                   # épis sur le dessus
+            spikes = QPainterPath()
+            for k in range(5):
+                a = math.radians(200 + k * 35)
+                bx, by = 22 * math.cos(a), -66 + 22 * math.sin(a)
+                tx, ty = 33 * math.cos(a + 0.18), -66 + 33 * math.sin(a + 0.18)
+                spikes.addPolygon(QPolygonF([QPointF(bx - 5 * math.sin(a), by + 5 * math.cos(a)),
+                                             QPointF(tx, ty),
+                                             QPointF(bx + 5 * math.sin(a), by - 5 * math.cos(a))]))
+            p.drawPath(spikes)
+        if bangs == "boucles":
+            for k in range(7):
+                x = -21 + k * 7
+                p.drawEllipse(QPointF(x, -68 - 4 * math.sin(k * math.pi / 6)), 5.5, 5.5)
+        # reflet
+        p.setPen(mkpen(QColor(255, 255, 255, 110), 1.6))
+        p.setBrush(NO_BRUSH)
+        p.drawArc(QRectF(-18, -88, 30, 20), 40 * 16, 80 * 16)
+
+    # ---- accessoires ----
+    def draw_idol_acc(self, p, acc):
+        grp = self.c_group
+        if acc == "lunettes":
+            p.setPen(mkpen(QColor("#2A2D3A"), 1.5))
+            p.setBrush(QColor(255, 255, 255, 50))
+            for ex in (-9, 10):
+                p.drawEllipse(QPointF(ex, -64), 6.8, 6.8)
+            p.drawLine(QPointF(-2.2, -64), QPointF(3.2, -64))
+        elif acc == "piercing":
+            p.setPen(mkpen(QColor("#FFD23F"), 1.3))
+            p.setBrush(NO_BRUSH)
+            p.drawEllipse(QPointF(24, -58), 2.4, 2.4)
+            p.drawEllipse(QPointF(-24, -58), 2.4, 2.4)
+        elif acc == "casquette":
+            p.setPen(mkpen(grp.darker(160), 1.3))
+            p.setBrush(grp)
+            p.drawChord(QRectF(-26, -96, 52, 40), 0, 180 * 16)
+            p.drawRoundedRect(QRectF(8, -79, 26, 5), 2.5, 2.5)
+            p.setPen(NO_PEN)
+            p.setBrush(QColor("#FFFFFF"))
+            p.drawEllipse(QPointF(-2, -88), 3, 3)
+        elif acc == "bandana":
+            p.setPen(mkpen(QColor("#8E1A24"), 1.1))
+            p.setBrush(QColor("#D8323C"))
+            p.drawRoundedRect(QRectF(-25, -80, 50, 7), 3, 3)
+            p.drawPolygon(QPolygonF([QPointF(-24, -78), QPointF(-34, -72), QPointF(-30, -80)]))
+            p.setPen(NO_PEN)
+            p.setBrush(QColor("#FFFFFF"))
+            for k in range(5):
+                p.drawEllipse(QPointF(-16 + k * 8, -76.5), 1, 1)
+        elif acc == "bonnet":
+            p.setPen(mkpen(grp.darker(160), 1.3))
+            p.setBrush(grp.lighter(115))
+            p.drawChord(QRectF(-26, -100, 52, 50), 0, 180 * 16)
+            p.setBrush(grp)
+            p.drawRoundedRect(QRectF(-27, -79, 54, 8), 4, 4)
+            p.setBrush(QColor("#FFFFFF"))
+            p.drawEllipse(QPointF(0, -101), 5, 5)
+        elif acc == "oreillette":
+            p.setPen(mkpen(QColor("#2A2D3A"), 1.2))
+            p.setBrush(QColor("#2A2D3A"))
+            p.drawEllipse(QPointF(23, -63), 2.6, 3)
+            p.setBrush(NO_BRUSH)
+            path = QPainterPath(QPointF(23, -60))
+            path.quadTo(QPointF(24, -52), QPointF(15, -50))
+            p.drawPath(path)
+            p.setBrush(QColor("#2A2D3A"))
+            p.drawEllipse(QPointF(14, -50), 1.8, 1.8)
+        elif acc == "noeud":
+            p.setPen(mkpen(QColor("#B8336A"), 1.1))
+            p.setBrush(QColor("#FF7FB2"))
+            p.drawPolygon(QPolygonF([QPointF(-14, -88), QPointF(-24, -95), QPointF(-24, -81)]))
+            p.drawPolygon(QPolygonF([QPointF(-14, -88), QPointF(-4, -95), QPointF(-4, -81)]))
+            p.drawEllipse(QPointF(-14, -88), 3, 3)
+        elif acc == "serre_tete":
+            p.setPen(mkpen(grp.lighter(130), 3.2))
+            p.setBrush(NO_BRUSH)
+            p.drawArc(QRectF(-25, -92, 50, 50), 25 * 16, 130 * 16)
+        elif acc == "grain":
+            p.setPen(NO_PEN)
+            p.setBrush(QColor("#3A2418"))
+            p.drawEllipse(QPointF(14, -58), 1.1, 1.1)
+        elif acc == "pansement":
+            p.save()
+            p.translate(-14, -57)
+            p.rotate(-20)
+            p.setPen(mkpen(QColor("#C98A4B"), 0.9))
+            p.setBrush(QColor("#F2C99A"))
+            p.drawRoundedRect(QRectF(-6, -2.2, 12, 4.4), 2, 2)
+            p.setPen(NO_PEN)
+            p.setBrush(QColor("#C98A4B"))
+            for dx in (-1.5, 1.5):
+                p.drawEllipse(QPointF(dx, 0), 0.6, 0.6)
+            p.restore()
+        elif acc == "etoile":
+            p.setPen(mkpen(QColor("#C99A1C"), 1.0))
+            p.setBrush(QColor("#FFD23F"))
+            p.drawPolygon(star_poly(15, -86, 6, 2.6))
+
+    # ---- bras et gestes ----
+    def draw_arms(self, p, pose, walking, ph):
+        sw = math.sin(ph) * 5 if walking else 0.0
+        t = self.t
+        front, back = (19, -22 + sw), (-19, -22 - sw)
+        felbow = belbow = None
+        extra = None
+        if pose == "wave":
+            front = (27 + math.sin(t * 12) * 4, -70)
+        elif pose == "point":
+            front = (38, -60)
+        elif pose == "heart":
+            front, extra = (13, -52), "finger_heart"
+        elif pose in ("peace", "wink"):
+            front, extra = (22, -70), "peace"
+        elif pose == "arms_up":
+            front, back = (22, -86), (-22, -86)
+        elif pose == "big_heart":
+            front, back = (2, -100), (-2, -100)
+            felbow, belbow = (27, -84), (-27, -84)
+        elif pose == "sign":
+            front, extra = (32, -38), "pen"
+        elif pose == "mic":
+            front, extra = (12, -54), "mic"
+        elif pose == "bow":
+            front, back = (8, -24), (-8, -24)
+        elif self.state == "drag":
+            front, back = (24, -56), (-24, -56)
+        oc = self.c_outfit
+        pen = mkpen(oc.darker(150), 7.6)
+        inner = mkpen(oc, 5.6)
+        for (sx, sy), hand, elbow in (((-14, -42), back, belbow), ((14, -42), front, felbow)):
+            path = QPainterPath(QPointF(sx, sy))
+            if elbow:
+                path.quadTo(QPointF(*elbow), QPointF(*hand))
+            else:
+                path.lineTo(QPointF(*hand))
+            p.setBrush(NO_BRUSH)
+            p.setPen(pen)
+            p.drawPath(path)
+            p.setPen(inner)
+            p.drawPath(path)
+            p.setPen(mkpen(self.c_skin.darker(140), 1.0))
+            p.setBrush(self.c_skin)
+            p.drawEllipse(QPointF(*hand), 3.8, 3.8)
+        p.setPen(NO_PEN)
+        if extra == "finger_heart" or pose == "big_heart":
+            hx, hy = (19, -62) if extra else (0, -110)
+            s = 4 if extra else 7
+            p.setBrush(QColor("#FF4F7B"))
+            p.drawPath(heart_path(hx, hy - math.sin(t * 6) * 1.5, s))
+        elif extra == "peace":
+            p.setPen(mkpen(self.c_skin.darker(140), 2.2))
+            p.drawLine(QPointF(22, -72), QPointF(19, -79))
+            p.drawLine(QPointF(23, -72), QPointF(26, -79))
+        elif extra == "pen":
+            p.setPen(mkpen(QColor("#2A2D3A"), 2))
+            p.drawLine(QPointF(33, -39), QPointF(40, -47 + math.sin(t * 20) * 2))
+        elif extra == "mic":
+            p.setPen(mkpen(QColor("#2A2D3A"), 3))
+            p.drawLine(QPointF(12, -52), QPointF(8, -44))
+            p.setPen(NO_PEN)
+            p.setBrush(QColor("#5A5F75"))
+            p.drawEllipse(QPointF(13, -57), 3.4, 3.4)
+
+
+def syllabes(name):
+    low = re.sub(r"[^a-z]", "", name.lower())
+    parts = re.findall(r"[^aeiouy]*[aeiouy]+(?:[^aeiouy](?![aeiouy]))?", low)
+    if not parts:
+        return name.upper()
+    rest = low[len("".join(parts)):]
+    parts[-1] += rest
+    return "-".join(parts).upper()
+
+
+# --------------------------------------------------------------------------- #
+# Le metteur en scène de la rencontre.
+# --------------------------------------------------------------------------- #
+class FanMeet:
+    GAP = 64
+
+    def __init__(self, world):
+        self.w = world
+        self.active = False
+        self.idols, self.fans = [], []
+        self.group = self.key = None
+        self.banner = None
+        self.phase, self.pt, self.step = None, 0.0, 0
+        self.acts = []
+        self.engaged = set()
+        self.next_act = 0.0
+        self.stats = {}
+        self.spots = {}
+        st = world.settings
+        try:
+            self.custom = json.loads(st.value("idol_groups", "{}")) or {}
+        except (TypeError, ValueError):
+            self.custom = {}
+        self.surprise = st.value("idol_visits", True, type=bool)
+        self.visit_cd = rnd(5400, 10800)
+
+    # ---------- groupes ----------
+    def groups(self):
+        d = dict(IDOL_GROUPS)
+        d.update(self.custom)
+        return d
+
+    def save_custom(self, key, g):
+        self.custom[key] = g
+        self.w.settings.setValue("idol_groups", json.dumps(self.custom))
+
+    def delete_custom(self, key):
+        self.custom.pop(key, None)
+        self.w.settings.setValue("idol_groups", json.dumps(self.custom))
+
+    def set_surprise(self, on):
+        self.surprise = bool(on)
+        self.w.settings.setValue("idol_visits", self.surprise)
+
+    def can_start(self):
+        w = self.w
+        return not self.active and w.role is None and w.family.scene is None and not w.paused
+
+    # ---------- début ----------
+    def start(self, key):
+        w = self.w
+        g = self.groups().get(key)
+        if g is None or not self.can_start() or not g.get("members"):
+            return False
+        fans = [p for p in w.pets + w.family.alive()
+                if p.active() and p.state not in ("drag", "tunnel", "ghost", "gone", "ko")]
+        if not fans:
+            return False
+        w.cancel_duo()
+        T = w.terrain
+        seg = T.segs[0]
+        for f in fans:
+            if f.state == "ride":
+                f.dismount(True)
+            if f.rider is not None:
+                f.rider.dismount(True)
+            if f.state == "sleep":
+                f.wake("Hein ?!")
+            f.busy, f.duty, f.camo = True, None, False
+            f.opening, f.open_phase = None, None
+            f.fan_hue, f.fan_stick = g.get("hue", 300), g.get("stick", "rond")
+            f.pending_ko = False
+        n = len(g["members"])
+        width = (n - 1) * self.GAP
+        nl = (len(fans) + 1) // 2
+        margin = width / 2 + 90 + nl * 60
+        xs = sorted(f.cx() for f in fans)
+        mid = xs[len(xs) // 2]
+        lo, hi = seg.x0 + margin, seg.x1 - margin
+        stage = min(max(mid, lo), hi) if lo < hi else (seg.x0 + seg.x1) / 2
+        self.stage, self.seg = stage, seg
+        # places des fans : de part et d'autre de la formation
+        left = sorted(fans, key=lambda q: q.cx())[:nl]
+        right = sorted(fans, key=lambda q: q.cx())[nl:]
+        self.spots = {}
+        for side, grp in ((-1, left), (1, right)):
+            order = sorted(grp, key=lambda q: abs(q.cx() - stage))
+            for k, f in enumerate(order):
+                self.spots[f] = T.clamp_x(stage + side * (width / 2 + 84 + k * 60), seg)
+        self.entry = seg.x0 + 30 if stage - seg.x0 > seg.x1 - stage else seg.x1 - 30
+        dirn = 1 if self.entry < stage else -1
+        vis = w.visible and not w.paused
+        self.banner = Prop("banniere", stage, seg.yb, hue=g.get("hue", 300), label=g["name"]) if vis else None
+        self.idols = []
+        for i, m in enumerate(g["members"]):
+            idol = Idol(w, g, m)
+            idol.x, idol.y, idol.seg = self.entry - W / 2, seg.yb - GROUND, seg
+            idol.state, idol.facing = "idle", dirn
+            idol.delay = 0.4 + i * 0.35
+            idol.spot = stage - width / 2 + i * self.GAP
+            idol.setVisible(False)
+            self.idols.append(idol)
+        self.fans, self.group, self.key = fans, g, key
+        self.acts, self.engaged = [], set()
+        self.stats = dict(photo=0, selfie=0, autographe=0, coeur=0, evanoui=0, larmes=0, cadeau=0)
+        self.active = True
+        self.go("arrive")
+        return True
+
+    def go(self, phase):
+        self.phase, self.pt, self.step = phase, 0.0, 0
+
+    def leader(self):
+        for i in self.idols:
+            if i.m.get("role") == "leader":
+                return i
+        return self.idols[0]
+
+    def free_fans(self):
+        return [f for f in self.fans if f not in self.engaged and f.active() and f.state in ("idle", "walk")
+                and not f.airborne]
+
+    def free_idols(self):
+        return [i for i in self.idols if i not in self.engaged and i.entered and not i.exited
+                and i.state in ("idle", "walk")]
+
+    def scream(self, fans, n_bubbles=2, faint=False):
+        talkers = random.sample(fans, min(n_bubbles, len(fans))) if fans else []
+        for f in fans:
+            if f.state == "ko":
+                continue
+            f.floaters.append([random.choice(FAN_LINES["scream"]), random.uniform(0, 0.3)])
+            f.hop(rnd(300, 420))
+            f.emit("heart", 3, y=GROUND - 80)
+            f.set_expr("happy", 2.5)
+            f.arm_up = True
+            self.later(1.3, lambda f=f: setattr(f, "arm_up", False))
+        for f in talkers:
+            f.say(random.choice(FAN_LINES["scream"]), 1.6)
+        if faint:
+            cands = [f for f in self.free_fans()]
+            if len(cands) >= 2 and random.random() < 0.6:
+                self.faint(random.choice(cands))
+
+    # ---------- boucle ----------
+    def tick(self, dt):
+        w = self.w
+        if not self.active:
+            if self.surprise and dt > 0:
+                self.visit_cd -= dt
+                if self.visit_cd <= 0:
+                    self.visit_cd = rnd(5400, 10800)
+                    awake = [p for p in w.pets if p.state != "sleep"]
+                    if awake and w.duo is None and w.visible and self.can_start():
+                        self.start(random.choice(list(self.groups())))
+            return
+        if dt <= 0:
+            return
+        if w.role is not None:
+            self.end(quiet=True)
+            return
+        self.pt += dt
+        for idol in self.idols:
+            if not idol.entered and self.pt >= idol.delay and self.phase == "arrive":
+                idol.entered = True
+                idol.setVisible(w.visible and not w.paused)
+                idol.emit("sparkle", 6, y=GROUND - 70)
+                idol.walk_to(idol.spot, 150)
+        for a in list(self.acts):
+            a[1] -= dt
+            while a[1] <= 0:
+                try:
+                    a[1] += next(a[0])
+                except StopIteration:
+                    if a in self.acts:
+                        self.acts.remove(a)
+                    break
+                except Exception:
+                    if a in self.acts:
+                        self.acts.remove(a)
+                    break
+        getattr(self, "phase_" + self.phase)(dt)
+
+    def run(self, gen):
+        self.acts.append([gen, 0.0])
+
+    def later(self, delay, fn):
+        def gen():
+            yield delay
+            fn()
+        self.run(gen())
+
+    def home(self, who, speed=110):
+        if isinstance(who, Idol):
+            who.walk_to(who.spot, speed)
+        elif who in self.spots and who.state in ("idle", "walk"):
+            who.go_to(self.spots[who], self.seg, speed)
+
+    # ---------- phases ----------
+    def phase_arrive(self, dt):
+        g, s = self.group, self.step
+        if s == 0 and self.pt > 0.9:
+            f = min(self.fans, key=lambda q: abs(q.cx() - self.entry))
+            f.face(self.idols[0])
+            f.say(random.choice(FAN_LINES["notice"]) % g["name"], 2.2)
+            f.set_expr("surprised", 1.5)
+            f.hop(300)
+            self.step = 1
+        elif s == 1 and self.pt > 2.2:
+            self.scream(self.fans, 2)
+            for f in self.fans:
+                f.fan_prop = "lightstick"
+                self.later(rnd(0.2, 0.9), lambda f=f: self.home(f, 170))
+            self.step = 2
+        elif s == 2:
+            ready = all(i.entered and i.state == "idle" and abs(i.cx() - i.spot) < 14 for i in self.idols)
+            if ready or self.pt > 18:
+                for i in self.idols:
+                    i.facing = -1 if i.cx() < self.stage else 1
+                for f in self.fans:
+                    if f.state == "idle":
+                        f.facing = 1 if f.cx() < self.stage else -1
+                self.go("greet")
+
+    def phase_greet(self, dt):
+        s, L = self.step, self.leader()
+        if s == 0:
+            L.set_pose("mic", 1.6)
+            L.say("Deux, trois !", 1.4)
+            self.step = 1
+        elif s == 1 and self.pt > 1.4:
+            for k, i in enumerate(self.idols):
+                i.set_pose(i.m.get("sig", "wave"), 2.4)
+                self.later(k * 90 / 1000.0, lambda i=i: i.hop(240))
+            L.say(self.group.get("greet", "Bonjour !"), 2.8)
+            self.scream(self.fans, 1)
+            self.step = 2
+        elif s == 2 and self.pt > 3.6:
+            for i in self.idols:
+                i.set_pose("bow", 1.4)
+            self.scream(self.fans, 2, faint=True)
+            self.step = 3
+        elif s == 3 and self.pt > 5.4:
+            self.duration = 22 + 3 * min(len(self.fans), 6)
+            self.next_act = 0.3
+            self.go("fanservice")
+
+    def phase_fanservice(self, dt):
+        self.next_act -= dt
+        if self.pt < self.duration - 4 and self.next_act <= 0:
+            self.next_act = rnd(1.3, 2.3)
+            self.pick_act()
+        if random.random() < dt * 0.8:                          # ambiance
+            f = random.choice(self.fans)
+            if f not in self.engaged and f.state == "idle" and not f.airborne:
+                if random.random() < 0.5:
+                    f.hop(260)
+                    f.arm_up = True
+                    self.later(0.7, lambda f=f: setattr(f, "arm_up", False))
+                else:
+                    f.floaters.append([random.choice(FAN_LINES["scream"]), 0.0])
+        if random.random() < dt * 0.35:
+            i = random.choice(self.free_idols() or [None])
+            if i is not None and i.cur_pose() is None:
+                i.set_pose(i.m.get("sig", "wave"), 1.6)
+        if self.pt > self.duration and not any(i in self.engaged for i in self.idols):
+            self.go("dance")
+
+    def pick_act(self):
+        fans, idols = self.free_fans(), self.free_idols()
+        if not fans or not idols:
+            return
+        kinds = dict(photo=3, selfie=2, autographe=2, coeur=2, larmes=1, cadeau=1, timide=1, chant=1)
+        if len(fans) < 2:
+            kinds.pop("chant")
+        if not any("timide" in f.persona for f in fans):
+            kinds["timide"] = 0.4
+        kind = random.choices(list(kinds), weights=list(kinds.values()))[0]
+        f = random.choice(fans)
+        i = min(idols, key=lambda q: abs(q.cx() - f.cx()) + rnd(0, 150))
+        if kind == "chant":
+            self.run(self.act_chant())
+            return
+        if kind == "timide":
+            shy = [q for q in fans if "timide" in q.persona]
+            f = random.choice(shy or fans)
+        self.engaged |= {f, i}
+        self.run(self.act_wrap(getattr(self, "act_" + kind)(f, i), f, i))
+
+    def act_wrap(self, gen, f, i):
+        try:
+            yield from gen
+        finally:
+            self.engaged.discard(f)
+            self.engaged.discard(i)
+            if self.active:
+                if f.fan_prop in ("telephone", "selfie"):
+                    f.fan_prop = "lightstick"
+                f.arm_up = False
+                if f.state in ("idle", "walk"):
+                    self.home(f)
+                if i.state in ("idle", "walk") and self.phase == "fanservice":
+                    self.home(i, 90)
+
+    def approach(self, f, i, dist):
+        side = 1 if f.cx() >= i.cx() else -1
+        f.go_to(i.cx() + side * dist, i.seg or self.seg, 170)
+        t = 0.0
+        while (f.state == "walk" or f.airborne) and t < 5:
+            yield 0.1
+            t += 0.1
+        f.face(i)
+        i.face(f)
+
+    # ---------- actions ----------
+    def act_photo(self, f, i):
+        yield from self.approach(f, i, 92)
+        f.fan_prop, f.arm_up = "telephone", True
+        f.say(random.choice(FAN_LINES["photo"]), 1.5)
+        yield 0.9
+        i.set_pose(i.m.get("sig", "peace"), 2.2)
+        i.say(random.choice(IDOL_LINES["photo"]), 1.3)
+        yield 0.6
+        for _ in range(2):
+            f.emit("flash", 1)
+            i.emit("flash", 1)
+            f.floaters.append(["CLIC !", 0.0])
+            yield 0.45
+        f.say(random.choice(FAN_LINES["photo_after"]), 1.8)
+        f.hop(340)
+        f.emit("heart", 4, y=GROUND - 80)
+        f.set_expr("happy", 2)
+        self.stats["photo"] += 1
+        yield 1.0
+
+    def act_selfie(self, f, i):
+        yield from self.approach(f, i, 40)
+        f.say(random.choice(FAN_LINES["selfie"]), 1.6)
+        yield 1.0
+        i.say(random.choice(IDOL_LINES["selfie"]), 1.3)
+        side = 1 if f.cx() > i.cx() else -1
+        f.facing = i.facing = side
+        f.fan_prop = "selfie"
+        i.set_pose("peace", 2.2)
+        f.set_expr("wink", 2)
+        yield 0.9
+        f.emit("flash", 1)
+        i.emit("flash", 1)
+        f.floaters.append(["CLIC !", 0.0])
+        yield 0.7
+        f.say(random.choice(FAN_LINES["selfie_after"]).replace("%s", i.name), 2.0)
+        f.hop(360)
+        f.emit("heart", 5, y=GROUND - 80)
+        self.stats["selfie"] += 1
+        yield 1.2
+
+    def act_autographe(self, f, i):
+        yield from self.approach(f, i, 52)
+        f.show_item, f.show_item_t = "carnet", 1.6
+        f.say(random.choice(FAN_LINES["autograph"]), 1.6)
+        yield 1.2
+        i.set_pose("sign", 1.6)
+        i.say(random.choice(IDOL_LINES["sign"]), 1.4)
+        yield 1.1
+        i.emit("sparkle", 5, y=GROUND - 50)
+        f.show_item, f.show_item_t = "carnet", 1.6
+        yield 0.5
+        f.say(random.choice(FAN_LINES["autograph_after"]), 2.0)
+        f.cry_t = 2.2
+        f.hop(300)
+        f.emit("heart", 4, y=GROUND - 80)
+        self.stats["autographe"] += 1
+        yield 1.2
+
+    def act_coeur(self, f, i):
+        i.face(f)
+        i.set_pose("heart", 2.0)
+        i.say(random.choice(IDOL_LINES["heart"]), 1.4)
+        i.emit("heart", 3, y=GROUND - 90)
+        yield 0.9
+        self.stats["coeur"] += 1
+        if random.random() < 0.55:
+            self.faint(f)
+        else:
+            f.say(random.choice(FAN_LINES["heart"]), 1.8)
+            f.floaters.append(["KYAAA !!", 0.0])
+            f.hop(400)
+            f.emit("heart", 6, y=GROUND - 80)
+        yield 1.0
+
+    def act_larmes(self, f, i):
+        f.cry_t = 5.0
+        f.say(random.choice(FAN_LINES["cry"]), 1.8)
+        self.stats["larmes"] += 1
+        yield 1.0
+        side = 1 if i.cx() > f.cx() else -1
+        i.walk_to(f.cx() + side * 46, 110)
+        t = 0.0
+        while i.state == "walk" and t < 5:
+            yield 0.1
+            t += 0.1
+        i.face(f)
+        i.set_pose("wave", 1.2)
+        i.say(random.choice(IDOL_LINES["comfort"]), 1.6)
+        i.emit("heart", 3, y=GROUND - 90)
+        yield 1.4
+        f.cry_t = 0.0
+        f.set_expr("happy", 2)
+        f.say("M-merci...", 1.4)
+        f.emit("heart", 3, y=GROUND - 80)
+        yield 1.0
+
+    def act_cadeau(self, f, i):
+        yield from self.approach(f, i, 50)
+        f.show_item, f.show_item_t = "peluche", 1.6
+        f.say(random.choice(FAN_LINES["gift"]), 1.5)
+        yield 1.2
+        i.show_item, i.show_item_t = "peluche", 1.6
+        i.say(random.choice(IDOL_LINES["gift"]), 1.6)
+        i.set_expr("happy", 2)
+        i.hop(260)
+        f.emit("heart", 4, y=GROUND - 80)
+        self.stats["cadeau"] += 1
+        yield 1.4
+
+    def act_timide(self, f, i):
+        side = 1 if f.cx() > self.stage else -1
+        f.go_to(f.cx() + side * 70, self.seg, 90)
+        f.say(random.choice(FAN_LINES["shy"][1:]), 1.4)
+        yield 1.4
+        i.walk_to(f.cx() - side * 50, 100)
+        t = 0.0
+        while i.state == "walk" and t < 6:
+            yield 0.1
+            t += 0.1
+        i.face(f)
+        f.face(i)
+        i.set_pose("wave", 1.6)
+        i.say(random.choice(IDOL_LINES["shy"]), 1.5)
+        yield 1.3
+        f.say(FAN_LINES["shy"][0], 1.6)
+        f.set_expr("happy", 3)
+        f.emit("heart", 2, y=GROUND - 80)
+        yield 1.4
+
+    def act_chant(self):
+        fans = [f for f in self.free_fans()]
+        random.shuffle(fans)
+        members = self.group["members"]
+        for k, m in enumerate(members):
+            if not fans:
+                break
+            f = fans[k % len(fans)]
+            f.say(syllabes(m["name"]) + " !", 0.9)
+            f.arm_up = True
+            self.later(0.6, lambda f=f: setattr(f, "arm_up", False))
+            yield 0.55
+        for f in fans:
+            f.hop(300)
+            f.arm_up = True
+            self.later(0.9, lambda f=f: setattr(f, "arm_up", False))
+        if fans:
+            fans[0].say(self.group.get("chant", "!!!"), 1.8)
+        L = self.leader()
+        if L not in self.engaged:
+            L.say("Merci !!", 1.3)
+            L.set_pose("big_heart", 1.6)
+        for i in self.idols:
+            i.emit("sparkle", 2, y=GROUND - 80)
+        yield 1.0
+
+    def faint(self, f):
+        if f.state not in ("idle", "walk"):
+            return
+        self.engaged.add(f)
+        f.say(random.choice(FAN_LINES["faint"]), 1.6)
+        f.set_expr("happy", 1.0)
+        f.emit("heart", 5, y=GROUND - 80)
+        f.pending_ko = True
+        f.launch(-f.facing * 70, -300)
+        self.stats["evanoui"] += 1
+        self.run(self.act_wake(f))
+
+    def act_wake(self, f):
+        yield rnd(3.5, 5.5)
+        helpers = [q for q in self.free_fans() if q is not f]
+        h = min(helpers, key=lambda q: abs(q.cx() - f.cx())) if helpers else None
+        if h is not None:
+            self.engaged.add(h)
+            side = 1 if h.cx() > f.cx() else -1
+            h.go_to(f.cx() + side * 44, self.seg, 170)
+            t = 0.0
+            while h.state == "walk" and t < 4:
+                yield 0.1
+                t += 0.1
+            h.face(f)
+            h.say(random.choice(FAN_LINES["fan_help"]), 1.4)
+            h.attack_t = 0.6
+            f.emit("feather", 3, y=GROUND - 40)
+            yield 1.2
+        t = 0.0
+        while f.state == "fall" and t < 3:
+            yield 0.1
+            t += 0.1
+        f.pending_ko = False
+        if f.state == "ko":
+            f.go_idle(1.0)
+        f.dizzy = 1.2
+        f.hop(260)
+        f.say(random.choice(FAN_LINES["wake"]), 1.8)
+        self.engaged.discard(f)
+        if h is not None:
+            self.engaged.discard(h)
+            self.home(h)
+        yield 1.0
+        if self.active:
+            self.home(f)
+
+    def phase_dance(self, dt):
+        s = self.step
+        if s == 0:
+            for i in self.idols:
+                i.pose_t = 0.0
+                self.home(i, 130)
+            for f in self.free_fans():
+                self.home(f, 130)
+            self.step = 1
+        elif s == 1 and (self.pt > 4 or all(i.state == "idle" for i in self.idols)):
+            for i in self.idols:
+                i.facing = -1 if i.cx() < self.stage else 1
+            self.leader().say("Notre nouvelle chanson !", 1.8)
+            self.scream(self.fans, 1)
+            self.step, self.pt = 2, 0.0
+            self.beat = -1
+        elif s == 2:
+            beat = int(self.pt * 2.2)
+            if beat != self.beat:
+                self.beat = beat
+                pose = Idol.DANCE[beat % len(Idol.DANCE)]
+                for i in self.idols:
+                    i.dance_pose = pose
+                    if beat % 2 == 0:
+                        i.hop(210)
+                    if beat % 4 == 0:
+                        i.facing = -i.facing
+                    if random.random() < 0.3:
+                        i.emit("note", 1, y=GROUND - 100)
+                for f in self.fans:
+                    if f.state == "idle" and f not in self.engaged and not f.airborne:
+                        f.arm_up = beat % 2 == 0
+                        if beat % 2 == 0 and random.random() < 0.6:
+                            f.hop(240)
+                if beat == 9 and self.fans:
+                    random.choice(self.fans).say(self.group.get("chant", "!!!"), 1.8)
+            if self.pt > 11:
+                for i in self.idols:
+                    i.dance_pose = None
+                    i.facing = -1 if i.cx() < self.stage else 1
+                    i.set_pose("big_heart", 2.2)
+                for f in self.fans:
+                    f.arm_up = False
+                self.scream(self.fans, 2, faint=True)
+                self.go("bye")
+
+    def phase_bye(self, dt):
+        s = self.step
+        if s == 0 and self.pt > 2.4:
+            L = self.leader()
+            L.say(random.choice(IDOL_LINES["bye"]), 2.2)
+            for i in self.idols:
+                i.set_pose("wave", 2.4)
+            talk = random.sample(self.fans, min(2, len(self.fans)))
+            for f in talk:
+                if f.state == "idle":
+                    f.say(random.choice(FAN_LINES["bye"]), 1.8)
+            for f in self.fans:
+                if random.random() < 0.35 and f.state == "idle":
+                    f.cry_t = 3.0
+            self.step = 1
+        elif s == 1 and self.pt > 5.0:
+            for k, i in enumerate(self.idols):
+                i.pose_t = 0.0
+                i.walk_to(self.entry, 150 + k * 4)
+            dirn = 1 if self.entry > self.stage else -1
+            for f in self.free_fans()[:2]:
+                f.go_to(self.stage + dirn * rnd(120, 220), self.seg, 170)
+                f.say("Attendez !!", 1.2)
+            self.step = 2
+        elif s == 2:
+            for i in self.idols:
+                if not i.exited and (abs(i.cx() - self.entry) < 16 or self.pt > 16):
+                    i.exited = True
+                    i.emit("sparkle", 6, y=GROUND - 70)
+                    i.hide()
+            if all(i.exited for i in self.idols):
+                self.step, self.pt = 3, 0.0
+        elif s == 3 and self.pt > 1.2:
+            self.end()
+
+    # ---------- fin ----------
+    def end(self, quiet=False):
+        if not self.active:
+            return
+        w = self.w
+        self.active = False
+        self.acts = []
+        self.engaged = set()
+        for i in self.idols:
+            i.hide()
+            i.deleteLater()
+        self.idols = []
+        if self.banner is not None:
+            self.banner.kill()
+            self.banner = None
+        for f in self.fans:
+            f.busy = w.role is not None
+            f.fan_prop, f.arm_up = None, False
+            f.cry_t = 0.0
+            f.pending_ko = False
+            if f.state == "ko":
+                f.go_idle(1.0)
+                f.say(random.choice(FAN_LINES["wake"]), 1.8)
+            elif f.state == "idle":
+                f.timer = rnd(1, 3)
+        self.fans = []
+        self.visit_cd = rnd(5400, 10800)
+        if quiet or not self.group:
+            return
+        st, g = self.stats, self.group
+        bits = []
+        for k, one, many in (("selfie", "selfie", "selfies"), ("photo", "photo", "photos"),
+                             ("autographe", "autographe", "autographes"), ("cadeau", "cadeau", "cadeaux"),
+                             ("evanoui", "évanouissement", "évanouissements"),
+                             ("larmes", "fan en larmes", "fans en larmes")):
+            if st.get(k):
+                bits.append("%d %s" % (st[k], one if st[k] == 1 else many))
+        text = "%s est passé au village ! %s." % (g["name"], ", ".join(bits) if bits else "Des cris, beaucoup de cris")
+        if w.family.active:
+            w.family.log("fanmeet", text, toast=True)
+            w.family.save()
+        elif w.tray is not None:
+            try:
+                w.tray.showMessage("H13ris — fan meeting", text, QSystemTrayIcon.MessageIcon.Information, 5000)
+            except Exception:
+                pass
+
+    def set_visible(self, on):
+        if self.banner is not None:
+            self.banner.setVisible(on)
+        for i in self.idols:
+            i.setVisible(on and i.entered and not i.exited)
+
+    # ---------- menu ----------
+    def fill_menu(self, fm):
+        fm.clear()
+        if self.active:
+            fm.addAction("🎤 %s est là ! (%s)" % (self.group["name"], self.phase)).setEnabled(False)
+            fm.addAction("Terminer la rencontre").triggered.connect(lambda: self.end())
+            return
+        ok = self.can_start()
+        for key, g in self.groups().items():
+            a = fm.addAction("🎤 %s — %d membres%s" % (g["name"], len(g.get("members", [])),
+                                                     " (%s)" % g["fandom"] if g.get("fandom") else ""))
+            a.triggered.connect(lambda _=False, k=key: self.start(k) or random.choice(self.w.pets).say(
+                "Pas maintenant !", 1.5))
+            a.setEnabled(ok)
+        fm.addSeparator()
+        fm.addAction("✏ Créer un groupe…").triggered.connect(lambda: self.edit(None))
+        if self.custom:
+            ed = fm.addMenu("✏ Modifier un groupe")
+            dl = fm.addMenu("🗑 Supprimer un groupe")
+            for key, g in self.custom.items():
+                ed.addAction(g["name"]).triggered.connect(lambda _=False, k=key: self.edit(k))
+                dl.addAction(g["name"]).triggered.connect(lambda _=False, k=key: self.delete_custom(k))
+
+    def edit(self, key):
+        dlg = GroupEditor(self, key)
+        if dlg.exec():
+            k, g = dlg.result_group()
+            self.save_custom(k, g)
+            return k
+        return None
+
+
+# --------------------------------------------------------------------------- #
+# Éditeur de groupe (nom, fandom, couleur du lightstick, membres).
+# --------------------------------------------------------------------------- #
+class GroupEditor(QDialog):
+    COLS = ["Nom", "Coiffure", "Cheveux", "Accessoire", "Tenue", "Couleur tenue", "Peau", "Rôle", "Pose"]
+
+    def __init__(self, fanmeet, key=None):
+        super().__init__(None, Qt.WindowType.WindowStaysOnTopHint)
+        self.fm, self.key = fanmeet, key
+        g = fanmeet.custom.get(key) if key else None
+        self.setWindowTitle("Groupe d'idoles" + (" — " + g["name"] if g else ""))
+        self.resize(860, 420)
+        lay = QVBoxLayout(self)
+        form = QFormLayout()
+        self.name = QLineEdit(g["name"] if g else "MON GROUPE")
+        self.fandom = QLineEdit(g.get("fandom", "") if g else "Fans")
+        self.greet = QLineEdit(g.get("greet", "") if g else "Bonjour, on est MON GROUPE !")
+        self.hue = QSlider(Qt.Orientation.Horizontal)
+        self.hue.setRange(0, 359)
+        self.hue.setValue(int(g.get("hue", 270)) if g else random.randrange(360))
+        self.stick = QComboBox()
+        self.stick.addItems(["etoile", "coeur", "rond"])
+        if g:
+            self.stick.setCurrentText(g.get("stick", "rond"))
+        form.addRow("Nom du groupe", self.name)
+        form.addRow("Nom du fandom", self.fandom)
+        form.addRow("Salut du groupe", self.greet)
+        form.addRow("Couleur officielle", self.hue)
+        form.addRow("Lightstick", self.stick)
+        lay.addLayout(form)
+        self.table = QTableWidget(0, len(self.COLS))
+        self.table.setHorizontalHeaderLabels(self.COLS)
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        lay.addWidget(self.table)
+        row = QHBoxLayout()
+        for label, fn in (("+ Membre", lambda: self.add_row()), ("– Membre", self.del_row),
+                          ("🎲 Tout au hasard", self.randomize)):
+            b = QPushButton(label)
+            b.clicked.connect(fn)
+            row.addWidget(b)
+        lay.addLayout(row)
+        bb = QDialogButtonBox(QDialogButtonBox.StandardButton.Ok | QDialogButtonBox.StandardButton.Cancel)
+        bb.accepted.connect(self.accept)
+        bb.rejected.connect(self.reject)
+        lay.addWidget(bb)
+        for m in (g["members"] if g else [self.random_member(i) for i in range(5)]):
+            self.add_row(m)
+
+    @staticmethod
+    def random_member(i=0):
+        names = ["Jaeyi", "Soren", "Hwan", "Bora", "Eunji", "Kyo", "Mirae", "Tae", "Ilan", "Yuna", "Rei", "Sol"]
+        return dict(name=random.choice(names), hair=random.choice(list(HAIR_STYLES)),
+                    hc=random.choice(list(HAIR_COLORS)), acc=random.choice(IDOL_ACCS),
+                    outfit=random.choice(IDOL_OUTFITS), oc=random.choice(list(OUTFIT_COLORS)),
+                    skin=random.randrange(len(SKIN_TONES)), role="leader" if i == 0 else random.choice(IDOL_ROLES),
+                    sig=random.choice(IDOL_POSES))
+
+    def combo(self, items, cur):
+        c = QComboBox()
+        c.addItems([str(x) for x in items])
+        c.setCurrentText(str(cur))
+        return c
+
+    def add_row(self, m=None):
+        if self.table.rowCount() >= 9:
+            return
+        m = m or self.random_member(self.table.rowCount())
+        r = self.table.rowCount()
+        self.table.insertRow(r)
+        self.table.setCellWidget(r, 0, QLineEdit(m["name"]))
+        opts = [list(HAIR_STYLES), list(HAIR_COLORS), IDOL_ACCS, IDOL_OUTFITS, list(OUTFIT_COLORS),
+                [str(k) for k in range(len(SKIN_TONES))], IDOL_ROLES, IDOL_POSES]
+        keys = ["hair", "hc", "acc", "outfit", "oc", "skin", "role", "sig"]
+        for c, (items, k) in enumerate(zip(opts, keys), start=1):
+            self.table.setCellWidget(r, c, self.combo(items, m.get(k, items[0])))
+
+    def del_row(self):
+        if self.table.rowCount() > 1:
+            self.table.removeRow(self.table.rowCount() - 1)
+
+    def randomize(self):
+        n = random.randint(3, 9)
+        self.table.setRowCount(0)
+        for i in range(n):
+            self.add_row(self.random_member(i))
+        self.hue.setValue(random.randrange(360))
+
+    def result_group(self):
+        keys = ["hair", "hc", "acc", "outfit", "oc", "skin", "role", "sig"]
+        members = []
+        for r in range(self.table.rowCount()):
+            m = dict(name=self.table.cellWidget(r, 0).text().strip()[:12] or "Idole")
+            for c, k in enumerate(keys, start=1):
+                v = self.table.cellWidget(r, c).currentText()
+                m[k] = int(v) if k == "skin" else v
+            members.append(m)
+        name = self.name.text().strip()[:18] or "MON GROUPE"
+        g = dict(name=name, fandom=self.fandom.text().strip()[:18], hue=self.hue.value(),
+                 stick=self.stick.currentText(), greet=self.greet.text().strip()[:40] or "Bonjour !",
+                 chant="%s !" % "-".join(syllabes(name).split("-")[:4]), members=members)
+        key = self.key or "perso_%d" % int(time.time())
+        return key, g
+
+
 # --------------------------------------------------------------------------- #
 # Le monde : boucle unique, cerveau du duo, coffres, liaison, chasse.
 # --------------------------------------------------------------------------- #
@@ -4942,6 +6406,7 @@ class World:
         # famille et communauté (vit dans l'instance arbitre, la plus ancienne)
         self.next_int = 0
         self.family = Family(self)
+        self.fanmeet = FanMeet(self)
 
         # point d'apparition : l'écran principal, ou loin des autres instances
         home, base = self.terrain.segs[0], None
@@ -5003,7 +6468,7 @@ class World:
         return None
 
     def everyone(self):
-        return self.pets + self.family.people
+        return self.pets + self.family.people + self.fanmeet.idols
 
     @property
     def kids(self):
@@ -5019,6 +6484,7 @@ class World:
         for pr in self.props.values():
             pr.hide()
         self.family.set_visible(False)
+        self.fanmeet.end(quiet=True)
         self.link.close()
 
     # ---------- boucle ----------
@@ -5037,6 +6503,7 @@ class World:
                 for pr in self.props.values():
                     pr.hide()
                 self.family.set_visible(False)
+                self.fanmeet.set_visible(False)
             elif not fs and self.paused:
                 self.paused = False
                 for p in self.everyone():
@@ -5078,7 +6545,10 @@ class World:
             p.tick(pdt)
         for k in self.family.people:
             k.tick(pdt)
+        for k in list(self.fanmeet.idols):
+            k.tick(pdt)
         self.family.tick(pdt)
+        self.fanmeet.tick(pdt)
         self.link_tick(dt)
         self.props_tick(pdt)
         self.hunt_tick(pdt)
@@ -5199,6 +6669,7 @@ class World:
         self.cancel_duo()
         if self.family.scene is not None:
             self.family.end_scene()
+        self.fanmeet.end(quiet=True)
         for p in self.pets:
             p.role = role
             p.ai = {}
@@ -5380,6 +6851,7 @@ class World:
         for pr in self.props.values():
             pr.setVisible(True)
         self.family.set_visible(True)
+        self.fanmeet.set_visible(True)
 
     def props_tick(self, dt):
         if self.is_arbiter():
@@ -5967,6 +7439,9 @@ class World:
 
     # ---------- cerveau du duo (temps de paix) ----------
     def decide(self, p):
+        if p.is_idol:
+            p.go_idle(2)
+            return
         if p.opening is not None:
             p.timer = 0.5
             return
@@ -6034,7 +7509,7 @@ class World:
 
     def start_duo(self, kind=None, **data):
         a, b = self.pets
-        if self.duo or self.role is not None or self.family.scene is not None \
+        if self.duo or self.role is not None or self.family.scene is not None or self.fanmeet.active \
                 or not all(p.grounded() and p.active() for p in self.pets):
             return False
         for p in self.pets:
@@ -6687,6 +8162,8 @@ class World:
         self.family_menu = m.addMenu("👨‍👩‍👧 Famille && village")
         self.family_menu.setToolTipsVisible(True)
         self.family_menu.aboutToShow.connect(lambda: self.family.fill_menu(self.family_menu))
+        self.fan_menu = m.addMenu("🎤 Fan meeting")
+        self.fan_menu.aboutToShow.connect(lambda: self.fanmeet.fill_menu(self.fan_menu))
         m.addSeparator()
 
         # actions rapides
@@ -6717,6 +8194,8 @@ class World:
                                self.family.toggle_decor)
         self.moon_act = check(cfg, "☾ Départs vers la lune (vieillesse)", self.family.death_mode == "lune",
                               self.family.set_death_mode, "Décoché : les aînés restent pour toujours.")
+        self.idol_act = check(cfg, "🎤 Visites surprises d'idoles", self.fanmeet.surprise, self.fanmeet.set_surprise,
+                              "De temps en temps, un groupe passe au village.")
         self.toast_act = check(cfg, "🔔 Notifications du village", self.family.toasts_on, self.family.set_toasts,
                                "Naissances, mariages, départs… trois notifications par jour au maximum.")
         if sys.platform == "win32":
@@ -6731,6 +8210,8 @@ class World:
         n = len(self.link.peers) + 1
         role = {"hunter": "la Garde", "prey": "intrus", None: "en paix"}[self.role]
         bits = [role if n == 1 else "%s · %d instances" % (role, n)]
+        if self.fanmeet.active:
+            bits.append("%s en visite !" % self.fanmeet.group["name"])
         if f.demo:
             bits.append("démo en cours")
         elif f.active:
@@ -6762,6 +8243,7 @@ class World:
         sync(self.decor_act, f.decor_on)
         sync(self.moon_act, f.death_mode == "lune")
         sync(self.toast_act, f.toasts_on)
+        sync(self.idol_act, self.fanmeet.surprise)
         self.update_tray_tip()
 
     def update_tray_tip(self):
@@ -6869,6 +8351,7 @@ class World:
 
     def all_sleep(self):
         self.cancel_duo()
+        self.fanmeet.end()
         for p in self.everyone():
             if p.grounded():
                 p.sleep(rnd(60, 120))
@@ -6889,6 +8372,7 @@ class World:
             for pr in self.props.values():
                 pr.hide()
             self.family.set_visible(False)
+            self.fanmeet.set_visible(False)
 
     @staticmethod
     def make_icon(pet):

@@ -4,7 +4,8 @@
 
 **English** · Two tiny demons that live on your Windows desktop, across all your monitors.
 They chat, race, fight with pillows, open treasure chests and fly; run the script twice
-and the first pair hunts the intruders. On the main screen they raise a family: eggs,
+and the first pair hunts the intruders. Fictional K-pop idol groups drop by for a fan meeting
+(screams, selfies, autographs, fainting fans, a synchronized dance) — or design your own group. On the main screen they raise a family: eggs,
 school and homework on your real clock, mischief and scolding, courtship, weddings under
 a flower arch, grandchildren, old age and a farewell to the moon — everything saved
 between sessions, with a demo mode that plays a whole life in eight minutes.
@@ -96,6 +97,23 @@ chronique, l'arbre et le mémorial.
 **Mode démo** : une vie entière du village en huit minutes, sans toucher à la
 vraie famille.
 
+## Fan meeting
+
+Un groupe d'idoles **fictif** débarque avec sa banderole — NOVA 7 (7 garçons) ou LUMI
+(5 filles) — et tout le village devient fan : cris, lightsticks aux couleurs du groupe,
+photos, selfies, autographes, cadeaux, cœurs avec les doigts, évanouissements (un autre
+fan vient réveiller la victime), larmes de joie, fanchant avec les noms des membres,
+chorégraphie synchronisée, adieux déchirants. Chaque membre se reconnaît à sa coiffure,
+sa couleur de cheveux, son accessoire, sa tenue, son rôle et sa pose signature.
+« Créer un groupe… » permet d'inventer le sien. Visites surprises de temps en temps
+(désactivables dans les réglages).
+
+<p align="center"><img src="docs/gif_fanmeeting.gif" alt="Fan meeting NOVA 7" width="820"></p>
+
+| LUMI en visite | Les membres et leurs poses |
+| :---: | :---: |
+| ![LUMI](docs/gif_fanmeeting_lumi.gif) | ![Membres et poses](docs/apercu_idoles.png) |
+
 ## Menu et réglages
 
 ![Menu](docs/apercu_menu.png)
@@ -113,6 +131,7 @@ Simulations accélérées, sans affichage (`QT_QPA_PLATFORM=offscreen`) :
 python tests/test_life.py      # cycle de vie complet : école, devoirs, bêtises, mariage, départ
 python tests/test_natural.py   # une journée réelle du village
 python tests/test_demo.py      # mode démo de bout en bout
+python tests/test_fanmeet.py   # fan meeting : chaque groupe, groupe perso, interruptions
 python tests/test_v3.py        # duos, coffres, chasse entre trois instances
 python tests/test_v4.py        # vol et intrus armés
 python tests/render_life.py    # régénère docs/apercu_vie.png
