@@ -912,6 +912,7 @@ class Pet(QWidget):
         # fan meeting : objet de fan tenu en main (lightstick, téléphone, selfie)
         self.fan_prop, self.fan_hue, self.fan_stick = None, 300.0, "rond"
         self.is_idol = False
+        self.ad_url = None                      # lien d'un message sponsorisé en cours
         self.c_body = hsl(*sk["body"])
         self.c_light = self.c_body.lighter(128)
         self.c_shade = self.c_body.darker(118)
@@ -1717,6 +1718,11 @@ class Pet(QWidget):
         self.drag_off = None
 
     def pet(self):
+        if self.ad_url and self.bubble:           # clic sur un message sponsorisé
+            url, self.ad_url = self.ad_url, None
+            webbrowser.open(url)
+            self.set_expr("happy", 1.4)
+            return
         if self.state == "sleep":
             self.wake()
             return
@@ -6346,6 +6352,233 @@ class GroupEditor(QDialog):
         return key, g
 
 
+
+# --------------------------------------------------------------------------- #
+# En ligne (désactivable) : une requête HTTPS vers le flux du dépôt GitHub
+# toutes les 6 h. Le flux annonce la dernière version (avec empreintes
+# des messages sponsorisés et des annonces. Quand une version plus récente
+# existe, Hybris prévient ; « Mettre à jour » ouvre la page de téléchargement.
+# Rien n'est téléchargé ni exécuté automatiquement.
+# --------------------------------------------------------------------------- #
+import queue  # noqa: E402
+import ssl  # noqa: E402
+import threading  # noqa: E402
+import urllib.request  # noqa: E402
+
+APP_VERSION = "5.2.0"
+AUTHOR = "H13ris"
+AUTHOR_SITE = "https://ramses.dagban.tg"
+REPO_URL = "https://github.com/hi3ris/H13ris-Desktop-Pets"
+FEED_URL = "https://raw.githubusercontent.com/hi3ris/H13ris-Desktop-Pets/main/feed.json"
+CHECK_EVERY = 6 * 3600
+AD_PREFIX = "📢 "
+
+
+def vtuple(v):
+    nums = [int(x) for x in re.findall(r"\d+", str(v))[:3]]
+    return tuple(nums + [0] * (3 - len(nums)))
+
+
+def http_get(url, timeout=15, limit=80 * 1024 * 1024):
+    if not url.startswith("https://"):
+        raise ValueError("HTTPS obligatoire")
+    req = urllib.request.Request(url, headers={"User-Agent": "H13risDesktopPets/" + APP_VERSION})
+    with urllib.request.urlopen(req, timeout=timeout, context=ssl.create_default_context()) as r:
+        data = r.read(limit + 1)
+    if len(data) > limit:
+        raise ValueError("fichier trop gros")
+    return data
+
+
+class Online:
+    def __init__(self, world):
+        self.w = world
+        st = world.settings
+        self.enabled = st.value("online", True, type=bool)
+        self.ads_on = st.value("ads", True, type=bool)
+        self.q = queue.Queue()
+        self.busy = False
+        self.feed = {}
+        self.update = None
+        self.status = None                    # texte d'état pour le menu
+        self.check_t = 25.0
+        self.nag_t = 8.0
+        self.ad_t = rnd(600, 1200)
+        self.last_ad = None
+        self.told = set()
+        try:
+            self.apply_feed(json.loads(st.value("feed_cache", "{}")), quiet=True)
+        except (TypeError, ValueError):
+            pass
+
+    # ---------- réglages ----------
+    def set_enabled(self, on):
+        self.enabled = bool(on)
+        self.w.settings.setValue("online", self.enabled)
+        if self.enabled:
+            self.check_t = 1.0
+
+    def set_ads(self, on):
+        self.ads_on = bool(on)
+        self.w.settings.setValue("ads", self.ads_on)
+
+    # ---------- flux ----------
+    def check_now(self, manual=False):
+        if self.busy:
+            return
+        self.busy = True
+        if manual:
+            self.status = "Recherche en cours…"
+
+        def job():
+            try:
+                self.q.put(("feed", json.loads(http_get(FEED_URL).decode("utf-8")), manual))
+            except Exception as exc:
+                self.q.put(("feed_err", str(exc), manual))
+        threading.Thread(target=job, daemon=True).start()
+
+    def apply_feed(self, feed, quiet=False):
+        if not isinstance(feed, dict):
+            return
+        self.feed = feed
+        v = feed.get("version", "0")
+        page = feed.get("page") or REPO_URL + "/releases/latest"
+        if vtuple(v) > vtuple(APP_VERSION) and page.startswith("https://"):
+            new = self.update is None or self.update["version"] != v
+            self.update = dict(version=v, page=page, notes=feed.get("notes", ""))
+            if new and not quiet:
+                self.nag_t = 3.0
+                self.toast("Mise à jour disponible", "Hybris & Iblis v%s — clic droit → Mettre à jour" % v)
+        else:
+            self.update = None
+        ann = feed.get("announce") or {}
+        if isinstance(ann, dict) and ann.get("id") and ann.get("text") \
+                and ann["id"] != self.w.settings.value("announce_seen", ""):
+            self.pending_announce = ann
+        else:
+            self.pending_announce = None
+
+    def toast(self, title, text):
+        tray = self.w.tray
+        if tray is not None:
+            try:
+                tray.showMessage("H13ris — " + title, text, QSystemTrayIcon.MessageIcon.Information, 6000)
+            except Exception:
+                pass
+
+    # ---------- boucle ----------
+    def speaker(self, prefer=0):
+        pets = [p for p in self.w.pets if p.active() and p.state in ("idle", "walk") and not p.busy]
+        if not pets:
+            return None
+        pets.sort(key=lambda p: p is not self.w.pets[prefer])
+        return pets[0]
+
+    def calm(self):
+        w = self.w
+        return (w.role is None and w.duo is None and w.family.scene is None and not w.fanmeet.active
+                and w.visible and not w.paused)
+
+    def tick(self, dt):
+        while True:
+            try:
+                kind, data, manual = self.q.get_nowait()
+            except queue.Empty:
+                break
+            self.on_result(kind, data, manual)
+        if dt <= 0:
+            return
+        if self.enabled:
+            self.check_t -= dt
+            if self.check_t <= 0:
+                self.check_t = CHECK_EVERY
+                self.check_now()
+        if not self.calm():
+            return
+        if self.update:                                           # Hybris prévient
+            self.nag_t -= dt
+            if self.nag_t <= 0:
+                p = self.speaker(0)
+                if p is not None:
+                    self.nag_t = 25 * 60
+                    p.say("Psst ! Mise à jour v%s dispo : clic droit → Mettre à jour !" % self.update["version"], 5)
+                    p.set_expr("surprised", 1.2)
+                    p.hop(320)
+                    p.spark = 0.5
+        ann = getattr(self, "pending_announce", None)
+        if ann:
+            p = self.speaker(1)
+            if p is not None:
+                p.say(ann["text"][:60], 5)
+                url = ann.get("url")
+                p.ad_url = url if isinstance(url, str) and url.startswith("https://") else None
+                p.set_expr("happy", 2)
+                self.w.settings.setValue("announce_seen", ann["id"])
+                self.pending_announce = None
+        ads = [a for a in self.feed.get("ads", []) if isinstance(a, dict) and a.get("text")]
+        if self.ads_on and ads:
+            self.ad_t -= dt
+            if self.ad_t <= 0:
+                every = max(10.0, float(self.feed.get("ad_every_min", 45))) * 60
+                self.ad_t = every * rnd(0.8, 1.2)
+                p = self.speaker(random.randrange(2))
+                if p is not None:
+                    ad = random.choices(ads, weights=[float(a.get("weight", 1)) for a in ads])[0]
+                    p.say(AD_PREFIX + ad["text"][:48], 6)
+                    url = ad.get("url")
+                    p.ad_url = url if isinstance(url, str) and url.startswith("https://") else None
+                    p.set_expr("wink", 1.5)
+                    self.last_ad = ad
+
+    def on_result(self, kind, data, manual):
+        if kind == "feed":
+            self.busy = False
+            self.w.settings.setValue("feed_cache", json.dumps(data))
+            self.apply_feed(data)
+            if manual:
+                self.status = None
+                if self.update is None:
+                    p = self.speaker(0)
+                    if p is not None:
+                        p.say("Tout est à jour (v%s) !" % APP_VERSION, 2.4)
+        elif kind == "feed_err":
+            self.busy = False
+            if manual:
+                self.status = None
+                p = self.speaker(0)
+                if p is not None:
+                    p.say("Pas de réseau... je réessaierai.", 2.4)
+
+    # ---------- mise à jour : ouvre la page de téléchargement ----------
+    def start_update(self):
+        u = self.update
+        if u is None:
+            return
+        webbrowser.open(u.get("page") or REPO_URL + "/releases/latest")
+        p = self.w.pets[0]
+        p.say("Télécharge la v%s, puis relance-moi !" % u["version"], 3)
+        p.set_expr("happy", 2)
+
+    # ---------- menu ----------
+    def fill_about(self, am):
+        am.clear()
+        am.addAction("Hybris & Iblis — v%s" % APP_VERSION).setEnabled(False)
+        am.addAction("Créé par %s" % AUTHOR).setEnabled(False)
+        am.addSeparator()
+        am.addAction("🌐 %s" % AUTHOR_SITE.replace("https://", "")).triggered.connect(
+            lambda: webbrowser.open(AUTHOR_SITE))
+        am.addAction("⭐ Code source (GitHub)").triggered.connect(lambda: webbrowser.open(REPO_URL))
+        am.addSeparator()
+        if self.update:
+            am.addAction("⬆ Télécharger la v%s" % self.update["version"]).triggered.connect(self.start_update)
+        a = am.addAction(self.status or "🔄 Rechercher une mise à jour")
+        a.triggered.connect(lambda: self.check_now(manual=True))
+        a.setEnabled(not self.busy)
+        if self.last_ad and str(self.last_ad.get("url", "")).startswith("https://"):
+            am.addAction("📢 " + self.last_ad["text"][:40]).triggered.connect(
+                lambda: webbrowser.open(self.last_ad["url"]))
+
+
 # --------------------------------------------------------------------------- #
 # Le monde : boucle unique, cerveau du duo, coffres, liaison, chasse.
 # --------------------------------------------------------------------------- #
@@ -6427,6 +6660,7 @@ class World:
             pet.show()
         if self.autostart_msg:
             b.land_msg = self.autostart_msg
+        self.online = Online(self)
         live = [(self.link.born, self.link.iid)] + [(pr["state"].get("born", 0), iid)
                                                     for iid, pr in self.link.peers.items()]
         self.arbiter = min(live)[1]
@@ -6550,6 +6784,7 @@ class World:
         self.family.tick(pdt)
         self.fanmeet.tick(pdt)
         self.link_tick(dt)
+        self.online.tick(dt)
         self.props_tick(pdt)
         self.hunt_tick(pdt)
         self.run_shots(pdt)
@@ -8133,6 +8368,8 @@ class World:
         self.title_act.setEnabled(False)
         self.status_act = m.addAction("")
         self.status_act.setEnabled(False)
+        self.update_act = add(m, "⬆ Mettre à jour", lambda: self.online.start_update())
+        self.update_act.setVisible(False)
         m.addSeparator()
 
         # interactions du duo
@@ -8196,10 +8433,16 @@ class World:
                               self.family.set_death_mode, "Décoché : les aînés restent pour toujours.")
         self.idol_act = check(cfg, "🎤 Visites surprises d'idoles", self.fanmeet.surprise, self.fanmeet.set_surprise,
                               "De temps en temps, un groupe passe au village.")
+        self.online_act = check(cfg, "🌐 Vérifier les mises à jour", self.online.enabled, self.online.set_enabled,
+                                "Une requête HTTPS vers GitHub toutes les 6 h (version, annonces).")
+        self.ads_act = check(cfg, "📢 Messages sponsorisés", self.online.ads_on, self.online.set_ads,
+                             "De temps en temps, un démon glisse un message ; clic dessus pour ouvrir le lien.")
         self.toast_act = check(cfg, "🔔 Notifications du village", self.family.toasts_on, self.family.set_toasts,
                                "Naissances, mariages, départs… trois notifications par jour au maximum.")
         if sys.platform == "win32":
             self.auto_act = check(cfg, "🚀 Lancer au démarrage de Windows", autostart_get(), self.toggle_autostart)
+        self.about_menu = m.addMenu("ℹ À propos — %s" % AUTHOR)
+        self.about_menu.aboutToShow.connect(lambda: self.online.fill_about(self.about_menu))
         m.addSeparator()
         add(m, "✖ Quitter", self.app.quit)
         m.aboutToShow.connect(self.refresh_menu)
@@ -8244,6 +8487,12 @@ class World:
         sync(self.moon_act, f.death_mode == "lune")
         sync(self.toast_act, f.toasts_on)
         sync(self.idol_act, self.fanmeet.surprise)
+        sync(self.online_act, self.online.enabled)
+        sync(self.ads_act, self.online.ads_on)
+        u = self.online.update
+        self.update_act.setVisible(u is not None)
+        if u is not None:
+            self.update_act.setText("⬆ Mettre à jour (v%s)" % u["version"])
         self.update_tray_tip()
 
     def update_tray_tip(self):

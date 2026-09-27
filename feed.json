@@ -1,0 +1,11 @@
+{
+  "version": "5.2.0",
+  "page": "https://github.com/hi3ris/H13ris-Desktop-Pets/releases/latest",
+  "notes": "Fan meeting, à propos, messages, annonces de mise à jour",
+  "ad_every_min": 45,
+  "ads": [
+    {"text": "Qui m'a créé ? ramses.dagban.tg", "url": "https://ramses.dagban.tg", "weight": 2},
+    {"text": "Cybersécurité : BlueShield", "url": "https://hi3ris.blueshield.tg", "weight": 1}
+  ],
+  "announce": {"id": "", "text": "", "url": ""}
+}

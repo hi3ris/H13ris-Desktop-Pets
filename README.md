@@ -9,7 +9,7 @@ and the first pair hunts the intruders. Fictional K-pop idol groups drop by for 
 school and homework on your real clock, mischief and scolding, courtship, weddings under
 a flower arch, grandchildren, old age and a farewell to the moon — everything saved
 between sessions, with a demo mode that plays a whole life in eight minutes.
-One Python file (PyQt6), vector-drawn, no network, no open port, MIT.
+One Python file (PyQt6), vector-drawn, no open port, MIT. Its only network use is an optional HTTPS check of `feed.json` on GitHub every 6 h (update notice, sponsored messages).
 
 ```bat
 pip install PyQt6
@@ -23,7 +23,7 @@ Right-click a demon for the menu. The documentation below is in French.
 ---
 
 Deux petits démons tout ronds qui vivent sur ton bureau Windows, sur tous tes écrans.
-Un seul fichier Python, zéro réseau, zéro port ouvert.
+Un seul fichier Python, zéro port ouvert. Seul accès réseau : la lecture de `feed.json` sur GitHub toutes les 6 h (désactivable).
 
 ## Installation
 
@@ -123,6 +123,22 @@ normal / long), mode chasse, décor, départs vers la lune, notifications,
 démarrage automatique. Les démons se cachent tout seuls quand une application
 passe en plein écran et ne volent jamais le focus.
 
+## Mises à jour, annonces et messages sponsorisés
+
+Le programme lit [`feed.json`](feed.json) (HTTPS, toutes les 6 h, désactivable dans ⚙ Réglages) :
+
+- `version` : si elle est plus récente que celle installée, Hybris prévient
+  (« Psst ! Mise à jour dispo ») et **⬆ Mettre à jour** apparaît en haut du menu ; le clic ouvre `page`
+  (par défaut la dernière release). Rien n'est téléchargé ni exécuté automatiquement.
+- `ads` : messages courts glissés dans les bulles toutes les `ad_every_min` minutes ;
+  un clic sur le démon qui parle ouvre le lien (liens `https://` uniquement ; désactivables).
+- `announce` : un message dit une seule fois (changer `id` pour en publier un nouveau).
+
+**Publier une mise à jour** : monter `APP_VERSION` dans `h13ris_pets.py`, publier une release
+(le `.exe` est compilé automatiquement), puis mettre la même `version` dans `feed.json`.
+
+**À propos** (menu ℹ) : créé par H13ris — [ramses.dagban.tg](https://ramses.dagban.tg).
+
 ## Tests
 
 Simulations accélérées, sans affichage (`QT_QPA_PLATFORM=offscreen`) :
@@ -131,6 +147,7 @@ Simulations accélérées, sans affichage (`QT_QPA_PLATFORM=offscreen`) :
 python tests/test_life.py      # cycle de vie complet : école, devoirs, bêtises, mariage, départ
 python tests/test_natural.py   # une journée réelle du village
 python tests/test_demo.py      # mode démo de bout en bout
+python tests/test_online.py    # flux simulé : annonce de mise à jour, messages, à propos
 python tests/test_fanmeet.py   # fan meeting : chaque groupe, groupe perso, interruptions
 python tests/test_v3.py        # duos, coffres, chasse entre trois instances
 python tests/test_v4.py        # vol et intrus armés
