@@ -1,6 +1,34 @@
-# H13ris Desktop Pets — Hybris & Iblis
+<!-- ============================================================== -->
+<!--  H13ris Desktop Pets  ·  design system: Hi3ris "Intercept"     -->
+<!--  bg #0c0c0a · text #ece8de · acc #f4d03f (gold) · #ff6b3d      -->
+<!--  type: Space Grotesk / JetBrains Mono · theme: specimen dossier -->
+<!-- ============================================================== -->
 
-<p align="center"><img src="docs/gif_duo.gif" alt="Hybris and Iblis: high five and dance" width="640"></p>
+<div align="center">
+
+<img src="https://readme-typing-svg.demolab.com?font=JetBrains+Mono&weight=600&size=26&pause=1200&color=F4D03F&center=true&vCenter=true&width=680&height=55&lines=H13ris+Desktop+Pets;specimens%3A+Hybris+%26+Iblis;two+demons+live+on+your+desktop" alt="H13ris Desktop Pets" />
+
+<p><img src="docs/gif_duo.gif" alt="Hybris and Iblis: high five and dance" width="640"></p>
+
+![Python](https://img.shields.io/badge/Python-0c0c0a?style=flat-square&logo=python&logoColor=f4d03f)
+![PyQt6](https://img.shields.io/badge/PyQt6-0c0c0a?style=flat-square&logo=qt&logoColor=f4d03f)
+![Platform](https://img.shields.io/badge/PLATFORM-Windows-0c0c0a?style=flat-square&logo=windows&logoColor=ece8de&labelColor=0c0c0a&color=8a877d)
+![Single file](https://img.shields.io/badge/1_FILE-vector_drawn-0c0c0a?style=flat-square&labelColor=0c0c0a&color=ff6b3d)
+[![Release](https://img.shields.io/github/v/release/hi3ris/H13ris-Desktop-Pets?style=flat-square&labelColor=0c0c0a&color=f4d03f)](https://github.com/hi3ris/H13ris-Desktop-Pets/releases)
+![License](https://img.shields.io/badge/LICENSE-MIT-0c0c0a?style=flat-square&labelColor=0c0c0a&color=f4d03f)
+
+</div>
+
+```
+┌─[ SPECIMEN DOSSIER ]─────────────────────────────────────────┐
+│ SPECIMEN 01 :  HYBRIS  (bleu)   ·  hubris demon              │
+│ SPECIMEN 02 :  IBLIS   (rouge)  ·  the whisperer            │
+│ HABITAT     :  Windows desktop  ·  all monitors             │
+│ BEHAVIOUR   :  walk · race · pillow-fight · fly · raise a   │
+│                family · hunt intruders · host K-pop idols   │
+│ CONTAINMENT :  1 Python file · 0 open ports · MIT           │
+└───────────────────────────────────────────────────────────────┘
+```
 
 **English** · Two tiny demons that live on your Windows desktop, across all your monitors.
 They chat, race, fight with pillows, open treasure chests and fly; run the script twice
@@ -25,7 +53,7 @@ Right-click a demon for the menu. The documentation below is in French.
 Deux petits démons tout ronds qui vivent sur ton bureau Windows, sur tous tes écrans.
 Un seul fichier Python, zéro port ouvert. Seul accès réseau : la lecture de `feed.json` sur GitHub toutes les 6 h (désactivable).
 
-## Installation
+## `▚` Installation
 
 ```bat
 pip install PyQt6
@@ -41,7 +69,7 @@ complémentaires → Exécuter quand même*).
 
 Clic droit sur un démon (ou sur l'icône près de l'horloge) ouvre le menu.
 
-## Le duo
+## `▚` Le duo
 
 Hybris (bleu) et Iblis (rouge) marchent, dorment, discutent, se chamaillent,
 font la course, se portent, dansent, prennent des photos et se livrent des
@@ -51,7 +79,7 @@ Ils passent d'un écran à l'autre : chute vers un écran plus bas, saut vers un
 
 <p align="center"><img src="docs/gif_polochons.gif" alt="Bataille de polochons" width="720"></p>
 
-## Coffres, objets et vol
+## `▚` Coffres, objets et vol
 
 Des coffres apparaissent sur les écrans : blaster Nerf, marteau-jouet,
 BlueShield, potions (sang, vitesse, invisibilité, vol), trottinette, peau de
@@ -61,7 +89,7 @@ banane, fumigène, jetpack, ballon, fusée.
 
 ![Objets et modes de vol](docs/apercu_vol.png)
 
-## Mode chasse
+## `▚` Mode chasse
 
 Lance le script une deuxième fois : la première instance devient *la Garde* et
 traque les intrus ; chaque instance suivante est un duo d'intrus qui fuit, se
@@ -72,7 +100,7 @@ parlent par de petits fichiers JSON dans le dossier temporaire — pas de résea
 
 ![Mode chasse](docs/apercu_chasse.png)
 
-## Vie de famille et de communauté
+## `▚` Vie de famille et de communauté
 
 Sur l'écran principal : une maison, un bureau, une école. Quand la complicité
 est haute, un œuf éclot. Chaque habitant a une couleur héritée, deux traits de
@@ -97,7 +125,7 @@ chronique, l'arbre et le mémorial.
 **Mode démo** : une vie entière du village en huit minutes, sans toucher à la
 vraie famille.
 
-## Fan meeting
+## `▚` Fan meeting
 
 Un groupe d'idoles **fictif** débarque avec sa banderole — NOVA 7 (7 garçons) ou LUMI
 (5 filles) — et tout le village devient fan : cris, lightsticks aux couleurs du groupe,
@@ -114,7 +142,7 @@ sa couleur de cheveux, son accessoire, sa tenue, son rôle et sa pose signature.
 | :---: | :---: |
 | ![LUMI](docs/gif_fanmeeting_lumi.gif) | ![Membres et poses](docs/apercu_idoles.png) |
 
-## Menu et réglages
+## `▚` Menu et réglages
 
 ![Menu](docs/apercu_menu.png)
 
@@ -123,7 +151,7 @@ normal / long), mode chasse, décor, départs vers la lune, notifications,
 démarrage automatique. Les démons se cachent tout seuls quand une application
 passe en plein écran et ne volent jamais le focus.
 
-## Mises à jour, annonces et messages sponsorisés
+## `▚` Mises à jour, annonces et messages sponsorisés
 
 Le programme lit [`feed.json`](feed.json) (HTTPS, toutes les 6 h, désactivable dans ⚙ Réglages) :
 
@@ -139,7 +167,7 @@ Le programme lit [`feed.json`](feed.json) (HTTPS, toutes les 6 h, désactivable 
 
 **À propos** (menu ℹ) : créé par H13ris — [ramses.dagban.tg](https://ramses.dagban.tg).
 
-## Tests
+## `▚` Tests
 
 Simulations accélérées, sans affichage (`QT_QPA_PLATFORM=offscreen`) :
 
@@ -155,7 +183,7 @@ python tests/render_life.py    # régénère docs/apercu_vie.png
 python tests/make_gifs.py      # régénère les GIF de docs/
 ```
 
-## Structure
+## `▚` Structure
 
 - `h13ris_pets.py` — tout le programme (PyQt6, dessin vectoriel, aucune ressource externe)
 - `docs/` — aperçus, GIF, icône et les deux notes de recherche qui ont guidé le design
@@ -163,4 +191,10 @@ python tests/make_gifs.py      # régénère les GIF de docs/
 - `tests/` — simulations et générateurs d'aperçus
 - `.github/workflows/build-exe.yml` — compile le `.exe` (PyInstaller) à chaque release
 
-Licence MIT.
+<div align="center">
+
+<br/>
+
+`⟨ Hi3ris // Intercept ⟩`  ·  Licence MIT  ·  [ramses.dagban.tg](https://ramses.dagban.tg)
+
+</div>
