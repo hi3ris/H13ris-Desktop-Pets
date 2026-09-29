@@ -4,7 +4,7 @@ Motion design vertical (1080×1920, 30 fps, 38 s) qui présente les deux démons
 design system Hi3ris « Intercept » (fond `#0c0c0a`, or `#f4d03f`, orange `#ff6b3d`,
 Space Grotesk / JetBrains Mono). Aucun asset externe : les démons 2D sont rendus par le
 vrai code de dessin de `h13ris_pets.py` sur fond transparent, les démons 3D sont
-modélisés en three.js, la musique est synthétisée, la voix est une voix neuronale.
+modélisés en three.js, la musique est synthétisée, la voix est générée par ElevenLabs (voix Liam, modèle multilingue ; repli gratuit edge-tts).
 
 | Fichier | Rôle |
 | --- | --- |
@@ -44,7 +44,7 @@ Le bas de l'image (20 %) reste libre pour l'interface TikTok.
 npm i -g playwright && npx playwright install chromium
 pip install numpy Pillow PyQt6 edge-tts
 ./build.sh                          # voix gratuite (edge-tts, fr-FR-RemyMultilingualNeural)
-ELEVENLABS_API_KEY=... ./build.sh   # voix ElevenLabs (ELEVENLABS_VOICE_ID pour changer de voix)
+ELEVENLABS_API_KEY=... ELEVENLABS_VOICE_ID=TX3LPaxmHKxFdv7VOQHJ ./build.sh   # voix ElevenLabs (Liam) ; plan gratuit = voix « premade » uniquement
 FFMPEG=/chemin/ffmpeg ./build.sh    # si ffmpeg n'est pas dans le PATH
 ```
 

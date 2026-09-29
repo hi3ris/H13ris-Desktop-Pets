@@ -17,7 +17,7 @@ ap.add_argument("--rate", default="+8%", help="edge : vitesse, ex. +4%")
 args = ap.parse_args()
 FF = os.environ.get("FFMPEG", "ffmpeg")
 SR = 44100
-VOICE = args.voice or (os.environ.get("ELEVENLABS_VOICE_ID", "h5FvD7dtq6DnVBPv8li") if args.engine == "elevenlabs" else "fr-FR-RemyMultilingualNeural")
+VOICE = args.voice or (os.environ.get("ELEVENLABS_VOICE_ID", "TX3LPaxmHKxFdv7VOQHJ") if args.engine == "elevenlabs" else "fr-FR-RemyMultilingualNeural")
 
 def tts(text, path):
     if args.engine == "elevenlabs":
