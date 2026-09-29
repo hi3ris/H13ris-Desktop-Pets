@@ -14,5 +14,6 @@ FFMPEG="$FF" node render.mjs                       # video_raw.mp4 (frames Chrom
   -af "loudnorm=I=-14:TP=-1.5:LRA=11,aresample=44100" -ar 44100 -ac 2 \
   -c:v libx264 -preset medium -crf 20 -pix_fmt yuv420p -r 30 -c:a aac -b:a 192k \
   -shortest -movflags +faststart pets_tiktok.mp4
+if [ -n "${ELEVENLABS_API_KEY:-}" ]; then FFMPEG="$FF" python3 voice.py; fi   # narration + ducking si la clé est fournie
 "$FF" -y -v error -ss 2.3 -i pets_tiktok.mp4 -frames:v 1 -q:v 2 cover.jpg
 echo "OK -> pets_tiktok.mp4 + cover.jpg"

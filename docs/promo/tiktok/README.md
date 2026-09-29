@@ -12,6 +12,8 @@ Space Grotesk / JetBrains Mono).
 | `pets.html` | la scène : timeline déterministe, `window.seek(t)` positionne tout à l'instant `t` |
 | `render.mjs` | capture chaque image dans Chromium (Playwright) et l'envoie à ffmpeg |
 | `audio.py` | musique lo-fi synthétisée + whoosh / impact calés sur les coupes (aucun sample externe) |
+| `narration.json` | texte de la voix off, un segment par scène avec sa fenêtre de temps |
+| `voice.py` | génère la voix avec ElevenLabs (`ELEVENLABS_API_KEY`, `ELEVENLABS_VOICE_ID`), la cale sur les scènes, baisse la musique sous la voix et remuxe |
 | `build.sh` | enchaîne tout : extraction des GIF de `docs/`, audio, rendu, mux |
 
 Les extraits animés sont les GIF de `docs/` (duo, polochons, vol, chasse, mariage, fan meeting).
@@ -37,5 +39,6 @@ Le bas de l'image (20 %) et la bande droite restent libres pour l'interface TikT
 ```bash
 npm i -g playwright && npx playwright install chromium
 pip install numpy
+ELEVENLABS_API_KEY=... ./build.sh   # avec voix off
 ./build.sh          # FFMPEG=/chemin/ffmpeg ./build.sh si ffmpeg n'est pas dans le PATH
 ```
