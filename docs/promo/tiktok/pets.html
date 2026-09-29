@@ -8,34 +8,33 @@
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{width:1080px;height:1920px;overflow:hidden;background:var(--bg);color:var(--text);font-family:var(--space)}
 #stage{position:relative;width:1080px;height:1920px;overflow:hidden;background:var(--bg)}
-#grid{position:absolute;inset:0;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:60px 60px;opacity:1}
+#grid{position:absolute;inset:0;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:60px 60px}
 #scan{position:absolute;left:0;right:0;height:2px;background:var(--acc);opacity:.35;top:-10px}
+#gl{position:absolute;left:0;top:0;width:1080px;height:1920px;z-index:5;pointer-events:none}
 .layer{position:absolute;inset:0;opacity:0}
 .eyebrow{font-family:var(--mono);font-size:26px;letter-spacing:.18em;color:var(--acc);text-transform:uppercase;display:flex;align-items:center;gap:18px}
 .eyebrow i{display:inline-block;width:40px;height:2px;background:var(--acc)}
 .h1{font-family:var(--space);font-weight:700;letter-spacing:-.035em;line-height:.92;color:var(--text)}
 .mono{font-family:var(--mono);color:var(--mute);letter-spacing:.06em}
 .word{display:inline-block;will-change:transform,opacity}
-.box{position:absolute;left:60px;right:60px;top:560px;height:560px;background:#2d3340;border:2px solid var(--rule);overflow:hidden}
-.box.tall{top:520px;height:760px}
-.box img{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;object-position:50% 100%;transform-origin:50% 100%}
-.box .bar{position:absolute;left:0;right:0;top:0;height:46px;background:#1e2230;border-bottom:1px solid #3a4050;display:flex;align-items:center;gap:10px;padding:0 16px;font-family:var(--mono);font-size:18px;color:#8a877d;letter-spacing:.1em}
-.box .bar b{width:14px;height:14px;border-radius:50%;background:#3a4050;display:inline-block}
-.box .bar b.r{background:var(--acc2)}.box .bar b.y{background:var(--acc)}.box .bar b.g{background:#7ac96b}
-.box .bar span{margin-left:auto;color:var(--acc)}
-.corner{position:absolute;width:44px;height:44px;border:4px solid var(--acc);}
+.sp{position:absolute;left:0;width:1080px;overflow:visible}
+.sp img{position:absolute;left:0;top:0;width:1080px;display:block;transform-origin:50% 100%}
+.floor{position:absolute;left:60px;right:60px;height:2px;background:linear-gradient(90deg,transparent,var(--rule) 15%,var(--rule) 85%,transparent)}
+.floor:after{content:"";position:absolute;left:0;right:0;top:-1px;height:4px;background:linear-gradient(90deg,transparent,rgba(244,208,63,.35) 30%,rgba(244,208,63,.35) 70%,transparent);filter:blur(2px)}
+.glow{position:absolute;width:900px;height:500px;left:90px;border-radius:50%;filter:blur(90px);opacity:.28}
 .tag{position:absolute;font-family:var(--mono);font-size:24px;letter-spacing:.14em;background:var(--acc);color:var(--bg);padding:12px 22px;font-weight:700;transform:skew(-4deg)}
 .num{position:absolute;right:70px;top:120px;font-family:var(--mono);font-size:30px;color:var(--mute);letter-spacing:.2em}
 .chip{display:inline-flex;align-items:center;gap:14px;border:2px solid var(--rule);padding:16px 26px;font-family:var(--mono);font-size:30px;color:var(--text);background:var(--bg3);letter-spacing:.06em}
-.chip .k{color:var(--acc);font-weight:700}
 .stat{position:absolute;left:60px;right:60px;border-top:2px solid var(--rule);padding-top:26px}
 .stat .i{font-family:var(--mono);font-size:26px;color:var(--acc);letter-spacing:.18em}
 .stat .v{font-family:var(--space);font-weight:700;font-size:112px;letter-spacing:-.03em;line-height:1;margin-top:10px}
 .stat .v small{font-size:44px;color:var(--mute);letter-spacing:0;font-weight:500;margin-left:14px}
-.progress{position:absolute;left:0;bottom:0;height:8px;background:var(--acc);width:0}
-.safe{position:absolute;left:0;right:0;top:0;bottom:0}
-.footer{position:absolute;left:60px;right:60px;bottom:210px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:22px;color:var(--mute);letter-spacing:.16em}
-.blob{position:absolute;border-radius:50%;filter:blur(120px);opacity:.22}
+.progress{position:absolute;left:0;bottom:0;height:8px;background:var(--acc);width:0;z-index:9}
+.footer{position:absolute;left:60px;right:60px;bottom:210px;display:flex;justify-content:space-between;font-family:var(--mono);font-size:22px;color:var(--mute);letter-spacing:.16em;z-index:8}
+.blob{position:absolute;border-radius:50%;filter:blur(120px);opacity:.2}
+.lbl{position:absolute;transform:translate(-50%,0);font-family:var(--mono);font-size:24px;letter-spacing:.14em;color:var(--text);background:var(--bg3);border:2px solid var(--rule);padding:10px 18px;white-space:nowrap;z-index:6}
+.lbl b{color:var(--acc);margin-right:10px}
+.ring{position:absolute;left:140px;top:1080px;width:800px;height:300px;border:2px solid var(--rule);border-radius:50%;opacity:.6}
 </style></head>
 <body><div id="stage">
 <div id="grid"></div>
@@ -48,65 +47,86 @@ html,body{width:1080px;height:1920px;overflow:hidden;background:var(--bg);color:
   <div class="eyebrow" style="position:absolute;left:60px;top:250px"><i></i>SPECIMEN DOSSIER // 00</div>
   <div class="h1" id="s0a" style="position:absolute;left:60px;top:560px;font-size:150px">Ton bureau<br>est <span style="color:var(--mute)">vide.</span></div>
   <div class="h1" id="s0b" style="position:absolute;left:60px;top:560px;font-size:150px;color:var(--acc)">Plus<br>maintenant.</div>
-  <img id="s0icon" src="icon.png" style="position:absolute;left:700px;top:940px;width:300px;height:300px;opacity:0">
+  <div class="floor" id="s0floor" style="top:1330px;opacity:0"></div>
 </div>
 
 <!-- S1 TITLE -->
 <div class="layer" id="s1">
   <div class="eyebrow" style="position:absolute;left:60px;top:250px"><i></i>SPECIMEN DOSSIER // 01 · 02</div>
   <div class="h1" id="s1t" style="position:absolute;left:60px;top:330px;font-size:118px">H13ris<br>Desktop Pets</div>
-  <div class="box" id="s1box" style="top:700px;height:480px"><img id="s1img"><div class="bar"><b class="r"></b><b class="y"></b><b class="g"></b>h13ris_pets.py<span>● LIVE</span></div></div>
-  <div class="mono" id="s1sub" style="position:absolute;left:60px;right:60px;top:1230px;font-size:40px;line-height:1.3;color:var(--text)">Deux petits démons qui <b style="color:var(--acc)">vivent</b> sur ton bureau Windows.</div>
+  <div class="glow" style="top:760px;background:var(--hyb)"></div>
+  <div class="sp" id="s1sp" style="top:700px;height:520px"><img id="s1img"></div>
+  <div class="floor" style="top:1196px"></div>
+  <div class="mono" id="s1sub" style="position:absolute;left:60px;right:60px;top:1250px;font-size:40px;line-height:1.3;color:var(--text)">Deux petits démons qui <b style="color:var(--acc)">vivent</b> sur ton bureau Windows.</div>
   <div id="s1chips" style="position:absolute;left:60px;top:1400px;display:flex;gap:18px;flex-wrap:wrap">
-    <div class="chip"><span class="k" style="color:#6a8fe6">■</span>HYBRIS · bleu</div>
-    <div class="chip"><span class="k" style="color:#e85d5d">■</span>IBLIS · rouge</div>
+    <div class="chip"><span style="color:#6a8fe6;font-weight:700">■</span>HYBRIS · bleu</div>
+    <div class="chip"><span style="color:#e85d5d;font-weight:700">■</span>IBLIS · rouge</div>
   </div>
 </div>
 
-<!-- S2..S6 FEATURE SCENES (template) -->
+<!-- feature scenes -->
 <div class="layer feat" id="s2">
-  <div class="num">02 / 07</div>
+  <div class="num">02 / 08</div>
   <div class="eyebrow" style="position:absolute;left:60px;top:250px"><i></i>BEHAVIOUR</div>
   <div class="h1 ft" style="position:absolute;left:60px;right:60px;top:320px;font-size:104px">Ils font la course,<br>se chamaillent,<br><span style="color:var(--acc)">bataille de<br>polochons.</span></div>
-  <div class="box" id="s2box" style="top:920px;height:420px"><img id="s2img"><div class="bar"><b class="r"></b><b class="y"></b><b class="g"></b>écran 1 · duel<span>● LIVE</span></div></div>
+  <div class="glow" style="top:900px;background:var(--ibl)"></div>
+  <div class="sp" style="top:820px;height:520px"><img></div>
+  <div class="floor" style="top:1316px"></div>
   <div class="tag" style="left:60px;top:1380px">TOUS TES ÉCRANS</div>
 </div>
 
 <div class="layer feat" id="s3">
-  <div class="num">03 / 07</div>
+  <div class="num">03 / 08</div>
   <div class="eyebrow" style="position:absolute;left:60px;top:250px"><i></i>LOOT</div>
   <div class="h1 ft" style="position:absolute;left:60px;right:60px;top:320px;font-size:104px">Des coffres<br>apparaissent.<br><span style="color:var(--acc)">Jetpack, potions,<br>fusée.</span></div>
-  <div class="box" id="s3box" style="top:880px;height:560px"><img id="s3img"><div class="bar"><b class="r"></b><b class="y"></b><b class="g"></b>inventaire<span>● LIVE</span></div></div>
-  <div class="tag" style="left:60px;top:1480px">ILS VOLENT.</div>
+  <div class="glow" style="top:800px;background:var(--acc)"></div>
+  <div class="sp" style="top:640px;height:720px"><img></div>
+  <div class="floor" style="top:1338px"></div>
+  <div class="tag" style="left:60px;top:1400px">ILS VOLENT.</div>
 </div>
 
 <div class="layer feat" id="s4">
-  <div class="num">04 / 07</div>
+  <div class="num">04 / 08</div>
   <div class="eyebrow" style="position:absolute;left:60px;top:250px"><i></i>HUNT MODE</div>
   <div class="h1 ft" style="position:absolute;left:60px;right:60px;top:320px;font-size:104px">Lance-le<br><span style="color:var(--acc2)">deux fois.</span><br>La Garde traque<br>les intrus.</div>
-  <div class="box" id="s4box" style="top:920px;height:400px"><img id="s4img"><div class="bar"><b class="r"></b><b class="y"></b><b class="g"></b>instance #2 · intrus<span style="color:var(--acc2)">● BLOQUÉ</span></div></div>
-  <div class="tag" style="left:60px;top:1360px;background:var(--acc2)">0 RÉSEAU · JSON LOCAL</div>
+  <div class="glow" style="top:900px;background:var(--acc2)"></div>
+  <div class="sp" style="top:820px;height:520px"><img></div>
+  <div class="floor" style="top:1319px"></div>
+  <div class="tag" style="left:60px;top:1380px;background:var(--acc2)">0 RÉSEAU · JSON LOCAL</div>
 </div>
 
 <div class="layer feat" id="s5">
-  <div class="num">05 / 07</div>
+  <div class="num">05 / 08</div>
   <div class="eyebrow" style="position:absolute;left:60px;top:250px"><i></i>FAMILY</div>
   <div class="h1 ft" style="position:absolute;left:60px;right:60px;top:320px;font-size:104px">Ils fondent<br>une famille.<br><span style="color:var(--acc)">École, mariage,<br>petits-enfants.</span></div>
-  <div class="box" id="s5box" style="top:920px;height:420px"><img id="s5img"><div class="bar"><b class="r"></b><b class="y"></b><b class="g"></b>écran principal · village<span>● LIVE</span></div></div>
+  <div class="glow" style="top:900px;background:#c58cff"></div>
+  <div class="sp" style="top:780px;height:560px"><img></div>
+  <div class="floor" style="top:1318px"></div>
   <div class="tag" style="left:60px;top:1380px">SUR TA VRAIE HORLOGE</div>
 </div>
 
 <div class="layer feat" id="s6">
-  <div class="num">06 / 07</div>
+  <div class="num">06 / 08</div>
   <div class="eyebrow" style="position:absolute;left:60px;top:250px"><i></i>FAN MEETING</div>
   <div class="h1 ft" style="position:absolute;left:60px;right:60px;top:320px;font-size:104px">Des idoles<br>K-pop<br><span style="color:var(--acc)">débarquent<br>chez toi.</span></div>
-  <div class="box" id="s6box" style="top:920px;height:400px"><img id="s6img"><div class="bar"><b class="r"></b><b class="y"></b><b class="g"></b>NOVA 7 · fan meeting<span>● LIVE</span></div></div>
-  <div class="tag" style="left:60px;top:1360px">CRÉE TON PROPRE GROUPE</div>
+  <div class="glow" style="top:900px;background:#c58cff"></div>
+  <div class="sp" style="top:900px;height:440px"><img></div>
+  <div class="floor" style="top:1324px"></div>
+  <div class="tag" style="left:60px;top:1380px">CRÉE TON PROPRE GROUPE</div>
 </div>
 
-<!-- S7 SPECS -->
+<!-- S7 3D -->
 <div class="layer" id="s7">
-  <div class="num">07 / 07</div>
+  <div class="num">07 / 08</div>
+  <div class="eyebrow" style="position:absolute;left:60px;top:250px"><i></i>SPECIMENS · 3D</div>
+  <div class="h1 ft" style="position:absolute;left:60px;right:60px;top:320px;font-size:104px">Sous toutes<br><span style="color:var(--acc)">leurs formes.</span></div>
+    <div id="labels"></div>
+  <div class="mono" style="position:absolute;left:60px;right:60px;top:1560px;font-size:30px;line-height:1.4">bébé → enfant → ado → adulte → aîné<br>couleur héritée, deux traits de caractère.</div>
+</div>
+
+<!-- S8 SPECS -->
+<div class="layer" id="s8">
+  <div class="num">08 / 08</div>
   <div class="eyebrow" style="position:absolute;left:60px;top:250px"><i></i>CONTAINMENT</div>
   <div class="stat st" style="top:400px"><div class="i">FICHIER PYTHON</div><div class="v">1<small>PyQt6 · vectoriel</small></div></div>
   <div class="stat st" style="top:700px"><div class="i">PORT OUVERT</div><div class="v">0<small>aucune télémétrie</small></div></div>
@@ -114,128 +134,125 @@ html,body{width:1080px;height:1920px;overflow:hidden;background:var(--bg);color:
   <div class="stat st" style="top:1300px"><div class="i">INSTALL</div><div class="v" style="font-family:var(--mono);font-size:58px;letter-spacing:0">pip install PyQt6<br><span style="color:var(--acc)">pythonw h13ris_pets.py</span></div></div>
 </div>
 
-<!-- S8 CTA -->
-<div class="layer" id="s8">
-  <img id="ctaicon" src="icon.png" style="position:absolute;left:390px;top:380px;width:300px;height:300px">
-  <div class="h1" id="ctah" style="position:absolute;left:60px;right:60px;top:760px;font-size:120px;text-align:center">H13ris<br>Desktop Pets</div>
-  <div class="mono" id="ctasub" style="position:absolute;left:60px;right:60px;top:1060px;text-align:center;font-size:34px;color:var(--text);line-height:1.4">Windows · .exe ou 1 fichier Python</div>
-  <div id="ctabox" style="position:absolute;left:120px;right:120px;top:1200px;background:var(--acc);color:var(--bg);font-family:var(--mono);font-weight:700;font-size:36px;letter-spacing:.12em;padding:34px;text-align:center;transform:skew(-4deg)">LIEN EN BIO ↗</div>
-  <div class="mono" id="ctaurl" style="position:absolute;left:60px;right:60px;top:1350px;text-align:center;font-size:28px;letter-spacing:.08em">github.com/hi3ris/H13ris-Desktop-Pets</div>
+<!-- S9 CTA -->
+<div class="layer" id="s9">
+  <div class="h1" id="ctah" style="position:absolute;left:60px;right:60px;top:300px;font-size:120px;text-align:center">H13ris<br>Desktop Pets</div>
+  <div class="floor" style="top:1150px"></div>
+  <div class="mono" id="ctasub" style="position:absolute;left:60px;right:60px;top:1190px;text-align:center;font-size:34px;color:var(--text);line-height:1.4">Windows · .exe ou 1 fichier Python</div>
+  <div id="ctabox" style="position:absolute;left:120px;right:120px;top:1300px;background:var(--acc);color:var(--bg);font-family:var(--mono);font-weight:700;font-size:36px;letter-spacing:.12em;padding:34px;text-align:center;transform:skew(-4deg)">LIEN EN BIO ↗</div>
+  <div class="mono" id="ctaurl" style="position:absolute;left:60px;right:60px;top:1450px;text-align:center;font-size:28px;letter-spacing:.08em">github.com/hi3ris/H13ris-Desktop-Pets</div>
 </div>
 
+<canvas id="gl" width="1080" height="1920"></canvas>
 <div class="footer"><span>⟨ Hi3ris // Intercept ⟩</span><span>MIT · 2026</span></div>
 <div class="progress" id="prog"></div>
 </div>
 
+<script src="three.min.js"></script><script src="demons3d.js"></script>
 <script>
-// ---------- timeline helpers ----------
-const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
-const lerp=(a,b,t)=>a+(b-a)*t;
-const easeOut=t=>1-Math.pow(1-t,3);
-const easeOutBack=t=>{const c=1.70158,c3=c+1;return 1+c3*Math.pow(t-1,3)+c*Math.pow(t-1,2)};
-const easeInOut=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
-const seg=(t,a,b)=>clamp((t-a)/(b-a),0,1);
+const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));const lerp=(a,b,t)=>a+(b-a)*t;
+const easeOut=t=>1-Math.pow(1-t,3);const easeOutBack=t=>{const c=1.70158,c3=c+1;return 1+c3*Math.pow(t-1,3)+c*Math.pow(t-1,2)};
+const easeInOut=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;const seg=(t,a,b)=>clamp((t-a)/(b-a),0,1);
 
-// GIF clips: name -> {n, fps}
-const CLIPS={duo:[110,12.5],polochons:[108,12.5],vol:[90,12.5],chasse:[108,12.5],mariage:[168,12.5],ecole:[114,12.5],fanmeeting:[260,10],betise:[75,12.5],anniversaire:[114,12.5]};
-const cache={};
-function gifSrc(name,localT,offset=0){const [n,fps]=CLIPS[name];const i=(Math.floor(localT*fps)+offset)%n+1;return `gif/${name}/f${String(i).padStart(4,'0')}.png`;}
-// preload all
-const preload=[];for(const [k,[n]] of Object.entries(CLIPS)){for(let i=1;i<=n;i++){const im=new Image();im.src=gifSrc(k,0,i-1);preload.push(im);}}
-window.ready=()=>Promise.all([document.fonts.ready,...preload.map(im=>im.decode().catch(()=>{}))]);
+// sprites (webp, fond transparent, rendus par render_sprites.py)
+const CLIPS={duo:[110,12],polochons:[108,12],vol:[90,12],chasse:[108,12],mariage:[168,12],ecole:[114,12],fanmeeting:[260,10]};
+const spSrc=(n,lt,off=0)=>{const [c,fps]=CLIPS[n];const i=(Math.floor(lt*fps)+off)%c+1;return `sprites/${n}/f${String(i).padStart(4,'0')}.webp`;};
+const pre=[];for(const [k,[c]] of Object.entries(CLIPS))for(let i=0;i<c;i++){const im=new Image();im.src=spSrc(k,0,i);pre.push(im);}
+window.ready=()=>Promise.all([document.fonts.ready,...pre.map(im=>im.decode().catch(()=>{}))]);
 
-// scene boundaries (seconds)
 const S=[
- {id:'s0',a:0.0,b:2.6},
- {id:'s1',a:2.6,b:7.0},
- {id:'s2',a:7.0,b:10.5},
- {id:'s3',a:10.5,b:14.0},
- {id:'s4',a:14.0,b:17.5},
- {id:'s5',a:17.5,b:21.0},
- {id:'s6',a:21.0,b:24.0},
- {id:'s7',a:24.0,b:27.5},
- {id:'s8',a:27.5,b:31.0},
-];
-const TOTAL=31;window.TOTAL=TOTAL;window.SCENES=S;
+ {id:'s0',a:0,b:2.6},{id:'s1',a:2.6,b:7.2},{id:'s2',a:7.2,b:11.0},{id:'s3',a:11.0,b:14.8},{id:'s4',a:14.8,b:18.6},{id:'s5',a:18.6,b:22.4},{id:'s6',a:22.4,b:25.6},{id:'s7',a:25.6,b:30.4},{id:'s8',a:30.4,b:34.0},{id:'s9',a:34.0,b:38.0}];
+const TOTAL=38;window.TOTAL=TOTAL;
 
-// split h1 text into word spans (once)
-function splitWords(el){
-  if(el.dataset.split)return;el.dataset.split=1;
-  const walk=node=>{[...node.childNodes].forEach(c=>{
-    if(c.nodeType===3){const parts=c.textContent.split(/(\s+)/);const frag=document.createDocumentFragment();
-      parts.forEach(p=>{if(!p)return;if(/^\s+$/.test(p)){frag.appendChild(document.createTextNode(p));}else{const s=document.createElement('span');s.className='word';s.textContent=p;frag.appendChild(s);}});
-      node.replaceChild(frag,c);}
-    else if(c.nodeType===1&&c.tagName!=='BR')walk(c);
-  })};walk(el);
-}
+// ---------- 3D ----------
+const renderer=new THREE.WebGLRenderer({canvas:document.getElementById('gl'),antialias:true,alpha:true,preserveDrawingBuffer:true});
+renderer.setPixelRatio(1);renderer.setSize(1080,1920,false);renderer.outputEncoding=THREE.sRGBEncoding;renderer.setClearColor(0x000000,0);
+const scene=new THREE.Scene();const cam=new THREE.PerspectiveCamera(30,1080/1920,.1,100);
+scene.add(new THREE.HemisphereLight('#ece8de','#2a2a25',.55));
+const key=new THREE.DirectionalLight('#ffffff',1.0);key.position.set(3,6,5);scene.add(key);
+const rim=new THREE.DirectionalLight('#f4d03f',1.4);rim.position.set(-4,4,-5);scene.add(rim);
+const fill=new THREE.DirectionalLight('#ff6b3d',.35);fill.position.set(4,1,-3);scene.add(fill);
+const G={};
+G.hook=makeDemon({skin:'hybris'});scene.add(G.hook);
+const RING=[{o:{skin:'hybris'},l:'HYBRIS',s:'adulte'},{o:{hue:330,size:.55,acc:'noeud'},l:'BÉBÉ',s:'rose'},{o:{hue:290,size:.7,acc:'helice'},l:'ENFANT',s:'hélice'},{o:{hue:200,size:.85,acc:'soleil',hornShape:'bump'},l:'ADO',s:'lunettes'},
+ {o:{skin:'iblis'},l:'IBLIS',s:'adulte'},{o:{hue:45,size:.95,acc:'lunettes'},l:'AÎNÉ',s:'or'},{o:{hue:170,acc:'couronne'},l:'IDOLE',s:'fan meeting'},{o:{skin:'hybris',acc:'jetpack'},l:'JETPACK',s:'loot'}];
+G.ring=new THREE.Group();RING.forEach((r,i)=>{const d=makeDemon(r.o);d.userData.ring=i;G.ring.add(d);});scene.add(G.ring);
+G.ringLine=new THREE.Mesh(new THREE.TorusGeometry(3.0,.025,8,120),new THREE.MeshBasicMaterial({color:0x3a3a33,transparent:true,opacity:.9}));G.ringLine.rotation.x=Math.PI/2;G.ringLine.position.y=.02;scene.add(G.ringLine);
+G.ctaA=makeDemon({skin:'hybris'});G.ctaB=makeDemon({skin:'iblis'});scene.add(G.ctaA);scene.add(G.ctaB);
+const labels=document.getElementById('labels');RING.forEach(r=>{const e=document.createElement('div');e.className='lbl';e.innerHTML=`<b>${r.l}</b>${r.s}`;labels.appendChild(e);});
+function hideAll(){[G.hook,G.ring,G.ringLine,G.ctaA,G.ctaB].forEach(g=>g.visible=false);}
+function proj(v){const p=v.clone().project(cam);return [(p.x+1)/2*1080,(1-p.y)/2*1920,p.z];}
+
+function splitWords(el){if(el.dataset.split)return;el.dataset.split=1;const walk=node=>{[...node.childNodes].forEach(c=>{if(c.nodeType===3){const parts=c.textContent.split(/(\s+)/);const frag=document.createDocumentFragment();parts.forEach(p=>{if(!p)return;if(/^\s+$/.test(p))frag.appendChild(document.createTextNode(p));else{const s=document.createElement('span');s.className='word';s.textContent=p;frag.appendChild(s);}});node.replaceChild(frag,c);}else if(c.nodeType===1&&c.tagName!=='BR')walk(c);})};walk(el);}
 document.querySelectorAll('.h1').forEach(splitWords);
-
-function wordsIn(el,t,start,stagger=0.06,dur=0.45,dy=60){
-  el.querySelectorAll('.word').forEach((w,i)=>{
-    const p=seg(t,start+i*stagger,start+i*stagger+dur);const e=easeOutBack(p);
-    w.style.opacity=p;w.style.transform=`translateY(${(1-e)*dy}px) rotate(${(1-e)*-3}deg)`;
-  });
-}
+function wordsIn(el,t,start,stagger=0.06,dur=0.45,dy=60){el.querySelectorAll('.word').forEach((w,i)=>{const p=seg(t,start+i*stagger,start+i*stagger+dur);const e=easeOutBack(p);w.style.opacity=p;w.style.transform=`translateY(${(1-e)*dy}px) rotate(${(1-e)*-3}deg)`;});}
 function popIn(el,t,start,dur=0.5,dy=40){const p=seg(t,start,start+dur);const e=easeOutBack(p);el.style.opacity=p;el.style.transform=`translateY(${(1-e)*dy}px) scale(${lerp(.92,1,e)})`;}
-function slideBox(el,t,start,dur=0.6){const p=seg(t,start,start+dur);const e=easeOut(p);el.style.opacity=p;el.style.transform=`translateX(${(1-e)*140}px) skewX(${(1-e)*-6}deg)`;}
+function slideIn(el,t,start,dur=0.6){const p=seg(t,start,start+dur);const e=easeOut(p);el.style.opacity=p;el.style.transform=`translateX(${(1-e)*140}px)`;}
 function layerOut(el,t,end,dur=0.3){const p=seg(t,end-dur,end);const e=easeInOut(p);el.style.transform=`translateY(${-e*80}px)`;el.style.opacity=1-e;}
 
-function setLayer(id,on){document.getElementById(id).style.opacity=on?1:0;}
+let pendingImgs=[];
+const ZOOM={duo:1.22,polochons:1.3,vol:1.08,chasse:1.25,mariage:1.15,fanmeeting:1.0,ecole:1.15};
+function setSprite(el,name,lt,off){const img=el.querySelector('img');img.style.transform=`scale(${ZOOM[name]})`;const src=spSrc(name,Math.max(0,lt),off);if(img.getAttribute('src')!==src){img.src=src;pendingImgs.push(img);}}
 
-window.seek=function(t){
-  // global bits
+window.seek=async function(t){
+  pendingImgs=[];
   document.getElementById('prog').style.width=(t/TOTAL*1080)+'px';
   document.getElementById('scan').style.top=((t*260)%2100-40)+'px';
   document.getElementById('grid').style.backgroundPosition=`${-t*8}px ${-t*12}px`;
   document.getElementById('blobA').style.transform=`translate(${Math.sin(t*.7)*80}px,${Math.cos(t*.5)*60}px)`;
   document.getElementById('blobB').style.transform=`translate(${Math.cos(t*.6)*80}px,${Math.sin(t*.4)*60}px)`;
-  S.forEach(s=>{const el=document.getElementById(s.id);const on=t>=s.a&&t<s.b;el.style.opacity=on?1:0;el.style.transform='none';if(on)scene(s,t-s.a,s.b-s.a);});
+  hideAll();let need3d=false;
+  S.forEach(s=>{const el=document.getElementById(s.id);const on=t>=s.a&&t<s.b;el.style.opacity=on?1:0;el.style.transform='none';if(on)need3d=scene3(s,t-s.a,s.b-s.a)||need3d;});
+  if(need3d)renderer.render(scene,cam);else renderer.clear();
+  await Promise.all(pendingImgs.map(im=>im.decode().catch(()=>{})));
 };
 
-function scene(s,lt,len){
+function scene3(s,lt,len){
   const el=document.getElementById(s.id);
   const eyebrow=el.querySelector('.eyebrow');if(eyebrow){const p=seg(lt,0,.4);eyebrow.style.opacity=p;eyebrow.style.transform=`translateX(${(1-easeOut(p))*-40}px)`;}
-  const num=el.querySelector('.num');if(num){num.style.opacity=seg(lt,.1,.5);}
+  const num=el.querySelector('.num');if(num)num.style.opacity=seg(lt,.1,.5);
+  let r3=false;
   switch(s.id){
     case 's0':{
       const a=document.getElementById('s0a'),b=document.getElementById('s0b');
-      if(lt<1.5){a.style.display='block';b.style.display='none';document.getElementById('s0icon').style.opacity=0;wordsIn(a,lt,0.05,0.1,0.45,90);
-        const sh=lt>1.2?Math.sin(lt*120)*6:0;a.style.transform=`translateX(${sh}px)`;}
-      else{a.style.display='none';b.style.display='block';wordsIn(b,lt,1.55,0.12,0.4,110);
-        const p=seg(lt,1.5,1.7);el.style.background=`rgba(244,208,63,${(1-p)*.9})`;
-        b.style.transform=`scale(${lerp(1.06,1,easeOut(seg(lt,1.55,2.4)))})`;const ic=document.getElementById('s0icon');const q=seg(lt,1.7,2.3);const qe=easeOutBack(q);ic.style.opacity=q;ic.style.transform=`translateY(${(1-qe)*-500}px) rotate(${(1-qe)*40}deg)`;}
+      if(lt<1.5){a.style.display='block';b.style.display='none';wordsIn(a,lt,0.05,0.1,0.45,90);const sh=lt>1.2?Math.sin(lt*120)*6:0;a.style.transform=`translateX(${sh}px)`;}
+      else{a.style.display='none';b.style.display='block';wordsIn(b,lt,1.55,0.12,0.4,110);const p=seg(lt,1.5,1.7);el.style.background=`rgba(244,208,63,${(1-p)*.9})`;b.style.transform=`scale(${lerp(1.06,1,easeOut(seg(lt,1.55,2.4)))})`;
+        // Hybris 3D tombe du ciel et atterrit sur la ligne de sol
+        cam.position.set(0,4,24);cam.lookAt(0,2.5,0);G.hook.visible=true;r3=true;
+        const q=seg(lt,1.55,2.05);const y=lerp(9,0,q*q);const land=seg(lt,2.05,2.45);const sq=1-Math.sin(land*Math.PI)*.22;
+        G.hook.position.set(2.0,y,0);G.hook.scale.set(.85/sq*(1-(1-sq)*.3),.85*sq,.85);G.hook.rotation.y=-.5;animDemon(G.hook,lt,{bob:0,tilt:(1-q)*.4});
+        document.getElementById('s0floor').style.opacity=seg(lt,1.9,2.3);}
       layerOut(el,lt,len,.25);break;}
     case 's1':{
       wordsIn(document.getElementById('s1t'),lt,0.1,0.09,0.5,90);
-      slideBox(document.getElementById('s1box'),lt,0.5);
-      document.getElementById('s1img').src=gifSrc('duo',Math.max(0,lt-0.5),0);
-      popIn(document.getElementById('s1sub'),lt,1.2);
-      const chips=document.getElementById('s1chips').children;[...chips].forEach((c,i)=>popIn(c,lt,1.7+i*.2,.5,30));
-      // ken-burns zoom on box
-      const z=lerp(1.15,1.25,seg(lt,.5,len));document.getElementById('s1img').style.transform=`scale(${z})`;
+      const sp=document.getElementById('s1sp');slideIn(sp,lt,0.4);setSprite(sp,'duo',lt-0.4,0);
+      popIn(document.getElementById('s1sub'),lt,1.2);[...document.getElementById('s1chips').children].forEach((c,i)=>popIn(c,lt,1.7+i*.2,.5,30));
       layerOut(el,lt,len,.3);break;}
     case 's2':case 's3':case 's4':case 's5':case 's6':{
-      const map={s2:['polochons',0],s3:['vol',0],s4:['chasse',20],s5:['mariage',60],s6:['fanmeeting',95]};
-      const [clip,off]=map[s.id];
-      wordsIn(el.querySelector('.ft'),lt,0.05,0.07,0.45,80);
-      const box=el.querySelector('.box');slideBox(box,lt,0.35);
-      const img=el.querySelector('img');img.src=gifSrc(clip,Math.max(0,lt-0.35),off);
-      const zb={s2:1.25,s3:1.0,s4:1.3,s5:1.2,s6:1.05}[s.id];img.style.transform=`scale(${lerp(zb,zb+.1,seg(lt,.35,len))})`;
-      popIn(el.querySelector('.tag'),lt,1.0,.45,30);
-      layerOut(el,lt,len,.3);break;}
+      const map={s2:['polochons',0],s3:['vol',0],s4:['chasse',18],s5:['mariage',60],s6:['fanmeeting',95]};const [clip,off]=map[s.id];
+      wordsIn(el.querySelector('.ft'),lt,0.05,0.07,0.45,80);const sp=el.querySelector('.sp');slideIn(sp,lt,0.3);setSprite(sp,clip,lt-0.3,off);
+      popIn(el.querySelector('.tag'),lt,1.0,.45,30);layerOut(el,lt,len,.3);break;}
     case 's7':{
-      const st=el.querySelectorAll('.st');st.forEach((x,i)=>{popIn(x,lt,0.2+i*0.35,.55,50);});
+      wordsIn(el.querySelector('.ft'),lt,0.05,0.08,0.45,80);
+      cam.position.set(0,6.5,24);cam.lookAt(0,1.3,0);G.ring.visible=true;r3=true;G.ringLine.visible=true;
+      const ang=lt*0.55+Math.PI/2;const R=3.0;const kids=G.ring.children;
+      const enter=easeOutBack(seg(lt,.2,.9));cam.updateMatrixWorld(true);
+      kids.forEach((d,i)=>{const a=ang+i/kids.length*Math.PI*2;d.position.set(Math.cos(a)*R*enter,0,Math.sin(a)*R*enter);d.scale.setScalar(.72*enter);animDemon(d,lt+i,{spin:-a+Math.PI/2+Math.sin(lt*1.3+i)*.25,bob:0,wave:i===4});
+        const [x,y,z]=proj(d.position.clone().setY(-0.15));const lb=labels.children[i];const front=(Math.sin(a)+1)/2;lb.style.left=x+'px';lb.style.top=(y+10)+'px';lb.style.opacity=seg(lt,.6,1.1)*lerp(.15,1,front);lb.style.transform=`translate(-50%,0) scale(${lerp(.75,1,front)})`;});
+      G.ringLine.scale.setScalar(Math.max(.001,enter));G.ringLine.material.opacity=seg(lt,.3,.9)*.9;
+      const dsc=el.querySelector('.mono');popIn(dsc,lt,1.2);
       layerOut(el,lt,len,.3);break;}
-    case 's8':{
-      const ic=document.getElementById('ctaicon');const p=seg(lt,0.1,0.8);const e=easeOutBack(p);
-      ic.style.opacity=p;ic.style.transform=`scale(${e}) rotate(${(1-e)*-20}deg) translateY(${Math.sin(lt*3)*10}px)`;
-      wordsIn(document.getElementById('ctah'),lt,0.4,0.1,0.5,80);
-      popIn(document.getElementById('ctasub'),lt,1.0);
-      const bx=document.getElementById('ctabox');popIn(bx,lt,1.3,.5,40);
-      const pulse=1+Math.max(0,Math.sin(lt*6))*0.025;if(lt>1.9)bx.style.transform=`skew(-4deg) scale(${pulse})`;
-      popIn(document.getElementById('ctaurl'),lt,1.6);
-      break;}
+    case 's8':{el.querySelectorAll('.st').forEach((x,i)=>popIn(x,lt,0.2+i*0.35,.55,50));layerOut(el,lt,len,.3);break;}
+    case 's9':{
+      cam.position.set(0,3.5,24);cam.lookAt(0,.5,0);G.ctaA.visible=G.ctaB.visible=true;r3=true;
+      const e=easeOutBack(seg(lt,0.1,0.8));
+      G.ctaA.position.set(-1.5,0,0);G.ctaB.position.set(1.5,0,0);G.ctaA.scale.setScalar(.95*e);G.ctaB.scale.setScalar(.95*e);
+      animDemon(G.ctaA,lt,{spin:.35+Math.sin(lt*1.2)*.15,wave:true});animDemon(G.ctaB,lt+2,{spin:-.35+Math.cos(lt*1.1)*.15});
+      wordsIn(document.getElementById('ctah'),lt,0.3,0.1,0.5,80);popIn(document.getElementById('ctasub'),lt,1.0);
+      const bx=document.getElementById('ctabox');popIn(bx,lt,1.3,.5,40);const pulse=1+Math.max(0,Math.sin(lt*6))*0.025;if(lt>1.9)bx.style.transform=`skew(-4deg) scale(${pulse})`;
+      popIn(document.getElementById('ctaurl'),lt,1.6);break;}
   }
+  return r3;
 }
 seek(0);
 </script></body></html>

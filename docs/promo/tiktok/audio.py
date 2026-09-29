@@ -1,5 +1,5 @@
 import numpy as np, wave, struct
-SR=44100; TOTAL=31.0; BPM=96; beat=60/BPM
+SR=44100; TOTAL=38.0; BPM=96; beat=60/BPM
 N=int(SR*TOTAL); t=np.arange(N)/SR
 out=np.zeros(N)
 rng=np.random.default_rng(7)
@@ -73,14 +73,16 @@ while tcur<TOTAL:
     tcur+=bar; b+=1
 
 # SFX synced to scenes
-scenes=[0.0,2.6,7.0,10.5,14.0,17.5,21.0,24.0,27.5]
+scenes=[0.0,2.6,7.2,11.0,14.8,18.6,22.4,25.6,30.4,34.0]
 add(whoosh(1.4,.35,True),0.15)          # riser under the hook
 add(hit(.9),1.5)                           # "Plus maintenant." slam
 for s in scenes[1:]: add(whoosh(.4,.4,False),s-0.12)
 # word ticks in hook
 for tt_ in (0.05,0.35,0.65): add(pluck(880,.12,.08),tt_)
 # CTA shimmer
-for i,f in enumerate((523,659,784,1047)): add(pluck(f,.5,.12),27.9+i*.09)
+for i,f in enumerate((523,659,784,1047)): add(pluck(f,.5,.12),34.4+i*.09)
+# arpège scintillant sur la séquence 3D
+for i in range(12): add(pluck((523,659,784,1047,1319)[i%5]*(1 if i<8 else 2),.35,.06),25.9+i*.22)
 # fade out last 1.2s + fade in
 out*=env(N,0.05,1.2)
 out/=np.max(np.abs(out))*1.05
