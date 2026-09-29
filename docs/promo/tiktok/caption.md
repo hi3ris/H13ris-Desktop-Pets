@@ -1,13 +1,13 @@
 # Légendes
 
 ## TikTok
-Deux petits démons vivent sur ton bureau Windows. 👹👹
-Ils font la course, se battent aux polochons, chassent les intrus, fondent une famille et reçoivent des idoles K-pop. 1 fichier Python, 0 port ouvert, gratuit. Lien en bio.
+Ton bureau est mort ? Adopte deux démons. 👹👹
+Ils se battent aux polochons, chassent les intrus, se marient, vieillissent et reçoivent des idoles K-pop, pendant que tu bosses. 1 fichier Python, 0 port ouvert, gratuit et open source. Lien en bio.
 
 #desktoppets #python #tech #devtok #togo #apprendresurtiktok
 
 ## Snapchat
-Deux démons sur ton bureau Windows 👹
+Deux démons vivent sur ton bureau 👹 gratuit, open source
 #desktoppets #python #tech
 
 ## Créneau proposé
